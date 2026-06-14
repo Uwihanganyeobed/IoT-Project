@@ -1,0 +1,2990 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Natcom IoT Full Course — with Obed</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&family=Inter:wght@300;400;500;600;700&display=swap');
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #0d0f14;
+    --surface: #151820;
+    --surface2: #1c2030;
+    --surface3: #232840;
+    --border: rgba(255,255,255,0.07);
+    --border2: rgba(255,255,255,0.12);
+    --text: #e8ecf4;
+    --muted: #8a94aa;
+    --accent: #4f8ef7;
+    --accent2: #7c3aed;
+    --green: #22c55e;
+    --amber: #f59e0b;
+    --red: #ef4444;
+    --teal: #14b8a6;
+    --pink: #ec4899;
+    --orange: #f97316;
+    --cyan: #06b6d4;
+    --mono: 'JetBrains Mono', monospace;
+    --sans: 'Inter', sans-serif;
+  }
+
+  body { background: var(--bg); color: var(--text); font-family: var(--sans); font-size: 15px; line-height: 1.7; min-height: 100vh; }
+
+  /* ── HERO ── */
+  .hero {
+    background: linear-gradient(135deg, #0a0c14 0%, #0e1628 40%, #0d1020 100%);
+    border-bottom: 1px solid var(--border2);
+    padding: 3.5rem 2rem 3rem;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+  .hero::before {
+    content: ''; position: absolute; top: -100px; left: 50%;
+    transform: translateX(-50%); width: 700px; height: 400px;
+    background: radial-gradient(ellipse, rgba(79,142,247,0.13) 0%, transparent 70%);
+    pointer-events: none;
+  }
+  .hero::after {
+    content: ''; position: absolute; bottom: -60px; right: -60px;
+    width: 300px; height: 300px;
+    background: radial-gradient(ellipse, rgba(124,58,237,0.08) 0%, transparent 70%);
+    pointer-events: none;
+  }
+  .hero-badge {
+    display: inline-flex; align-items: center; gap: 6px;
+    background: rgba(79,142,247,0.1); border: 1px solid rgba(79,142,247,0.3);
+    border-radius: 100px; padding: 5px 16px; font-size: 12px; color: #7eb8ff;
+    letter-spacing: 0.05em; text-transform: uppercase; margin-bottom: 1.4rem;
+  }
+  .hero h1 {
+    font-size: clamp(2rem, 5vw, 3.4rem); font-weight: 700; line-height: 1.15;
+    margin-bottom: 0.6rem;
+    background: linear-gradient(135deg, #e8ecf4 20%, #7eb8ff 60%, #a78bfa);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+  }
+  .hero p { color: var(--muted); font-size: 1.05rem; max-width: 600px; margin: 0 auto 2.2rem; }
+  .hero-stats { display: flex; justify-content: center; gap: 3rem; flex-wrap: wrap; }
+  .stat { text-align: center; }
+  .stat-num { font-size: 1.7rem; font-weight: 700; color: var(--accent); }
+  .stat-label { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.07em; }
+
+  /* ── LAYOUT ── */
+  .layout { display: flex; min-height: calc(100vh - 260px); }
+
+  /* ── SIDEBAR ── */
+  .sidebar {
+    width: 290px; flex-shrink: 0; background: var(--surface);
+    border-right: 1px solid var(--border); padding: 1.5rem 0;
+    position: sticky; top: 0; height: 100vh; overflow-y: auto;
+  }
+  .sidebar-title {
+    font-size: 10px; text-transform: uppercase; letter-spacing: 0.1em;
+    color: var(--muted); padding: 0 1.2rem 0.6rem;
+  }
+  .sidebar-section { padding: 0.4rem 1.2rem 0.2rem; font-size: 10px; text-transform: uppercase; letter-spacing: 0.08em; color: rgba(138,148,170,0.5); margin-top: 0.5rem; }
+  .nav-item {
+    display: flex; align-items: center; gap: 9px;
+    padding: 0.55rem 1.2rem; cursor: pointer; border: none; background: none;
+    width: 100%; text-align: left; color: var(--muted); font-family: var(--sans);
+    font-size: 12.5px; transition: all 0.15s; border-left: 2px solid transparent;
+  }
+  .nav-item:hover { background: var(--surface2); color: var(--text); }
+  .nav-item.active { background: rgba(79,142,247,0.09); color: #7eb8ff; border-left-color: var(--accent); }
+  .nav-num {
+    width: 20px; height: 20px; border-radius: 50%; background: var(--surface2);
+    border: 1px solid var(--border2); display: flex; align-items: center; justify-content: center;
+    font-size: 9px; font-weight: 700; flex-shrink: 0; font-family: var(--mono);
+  }
+  .nav-item.active .nav-num { background: rgba(79,142,247,0.2); border-color: rgba(79,142,247,0.5); color: var(--accent); }
+
+  /* ── MAIN ── */
+  .main { flex: 1; padding: 2.5rem 2.8rem; max-width: 900px; overflow-y: auto; }
+
+  .module { display: none; }
+  .module.active { display: block; animation: fadeIn 0.2s ease; }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+  /* ── MODULE HEADER ── */
+  .module-header {
+    display: flex; align-items: flex-start; gap: 1rem;
+    margin-bottom: 2rem; padding-bottom: 1.5rem; border-bottom: 1px solid var(--border);
+  }
+  .module-icon { width: 54px; height: 54px; border-radius: 14px; display: flex; align-items: center; justify-content: center; font-size: 26px; flex-shrink: 0; }
+  .module-meta { flex: 1; }
+  .module-label { font-size: 11px; text-transform: uppercase; letter-spacing: 0.09em; color: var(--muted); margin-bottom: 2px; }
+  .module-title { font-size: 1.65rem; font-weight: 700; line-height: 1.2; }
+  .module-desc { color: var(--muted); font-size: 14px; margin-top: 5px; line-height: 1.5; }
+  .module-tags { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 10px; }
+  .tag { font-size: 11px; padding: 3px 10px; border-radius: 100px; font-family: var(--mono); }
+  .tag-blue   { background: rgba(79,142,247,0.12);  color: #7eb8ff;  border: 1px solid rgba(79,142,247,0.25); }
+  .tag-green  { background: rgba(34,197,94,0.1);    color: #4ade80;  border: 1px solid rgba(34,197,94,0.25); }
+  .tag-amber  { background: rgba(245,158,11,0.1);   color: #fcd34d;  border: 1px solid rgba(245,158,11,0.25); }
+  .tag-purple { background: rgba(124,58,237,0.1);   color: #a78bfa;  border: 1px solid rgba(124,58,237,0.25); }
+  .tag-teal   { background: rgba(20,184,166,0.1);   color: #2dd4bf;  border: 1px solid rgba(20,184,166,0.25); }
+  .tag-pink   { background: rgba(236,72,153,0.1);   color: #f9a8d4;  border: 1px solid rgba(236,72,153,0.25); }
+  .tag-orange { background: rgba(249,115,22,0.1);   color: #fdba74;  border: 1px solid rgba(249,115,22,0.25); }
+  .tag-red    { background: rgba(239,68,68,0.1);    color: #fca5a5;  border: 1px solid rgba(239,68,68,0.25); }
+  .tag-cyan   { background: rgba(6,182,212,0.1);    color: #67e8f9;  border: 1px solid rgba(6,182,212,0.25); }
+
+  /* ── HEADINGS ── */
+  h2 {
+    font-size: 1.15rem; font-weight: 600; margin: 2rem 0 0.8rem; color: var(--text);
+    display: flex; align-items: center; gap: 8px;
+  }
+  h2::before { content: ''; display: block; width: 4px; height: 18px; background: var(--accent); border-radius: 2px; }
+  h3 { font-size: 1rem; font-weight: 600; margin: 1.4rem 0 0.5rem; color: #c4cfdf; }
+  h4 { font-size: 0.9rem; font-weight: 600; margin: 1rem 0 0.4rem; color: #a0b0c8; }
+  p { color: #b0bcd0; margin-bottom: 0.8rem; }
+  strong { color: #d4e0f0; }
+  em { color: #a8d0ff; font-style: normal; font-weight: 500; }
+  code { font-family: var(--mono); font-size: 12px; background: var(--surface3); padding: 1px 6px; border-radius: 4px; color: #89b4fa; }
+
+  /* ── CODE BLOCK ── */
+  .code-block { background: var(--surface2); border: 1px solid var(--border2); border-radius: 12px; margin: 1rem 0; overflow: hidden; }
+  .code-header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 8px 14px; background: var(--surface3); border-bottom: 1px solid var(--border);
+    font-size: 12px; color: var(--muted); font-family: var(--mono);
+  }
+  .code-lang { display: flex; align-items: center; gap: 6px; }
+  .lang-dot { width: 8px; height: 8px; border-radius: 50%; }
+  pre { padding: 1.2rem 1.4rem; overflow-x: auto; font-family: var(--mono); font-size: 12.5px; line-height: 1.75; color: #cdd6f4; margin: 0; }
+  .kw  { color: #cba6f7; }
+  .fn  { color: #89b4fa; }
+  .str { color: #a6e3a1; }
+  .num { color: #fab387; }
+  .cmt { color: #585b70; font-style: italic; }
+  .type{ color: #f38ba8; }
+  .op  { color: #89dceb; }
+  .pp  { color: #cba6f7; } /* preprocessor */
+
+  /* ── INFO BOXES ── */
+  .info-box { border-radius: 10px; padding: 1rem 1.2rem; margin: 1rem 0; border-left: 3px solid; font-size: 14px; line-height: 1.6; }
+  .info-box.note   { background: rgba(79,142,247,0.07);  border-color: var(--accent); color: #a8c8ff; }
+  .info-box.warn   { background: rgba(245,158,11,0.07);  border-color: var(--amber);  color: #fcd34d; }
+  .info-box.do     { background: rgba(34,197,94,0.07);   border-color: var(--green);  color: #86efac; }
+  .info-box.danger { background: rgba(239,68,68,0.07);   border-color: var(--red);    color: #fca5a5; }
+  .info-box.teal   { background: rgba(20,184,166,0.07);  border-color: var(--teal);   color: #5eead4; }
+  .info-box .title { font-weight: 700; margin-bottom: 5px; font-size: 11px; text-transform: uppercase; letter-spacing: 0.07em; opacity: 0.85; }
+
+  /* ── STEP LIST ── */
+  .steps { list-style: none; counter-reset: step; margin: 1rem 0; }
+  .steps li {
+    counter-increment: step; display: flex; gap: 12px;
+    padding: 0.85rem 0; border-bottom: 1px solid var(--border); color: #b0bcd0; font-size: 14px;
+  }
+  .steps li:last-child { border-bottom: none; }
+  .steps li::before {
+    content: counter(step); min-width: 26px; height: 26px;
+    background: var(--surface3); border: 1px solid var(--border2); border-radius: 50%;
+    display: flex; align-items: center; justify-content: center; font-size: 11px;
+    font-family: var(--mono); font-weight: 700; color: var(--accent); flex-shrink: 0; margin-top: 1px;
+  }
+
+  /* ── CHECKLIST ── */
+  .checklist { list-style: none; margin: 0.5rem 0 1rem; }
+  .checklist li { display: flex; align-items: flex-start; gap: 8px; padding: 5px 0; font-size: 14px; color: #b0bcd0; }
+  .checklist li::before { content: '◦'; color: var(--accent); font-size: 18px; line-height: 1.3; flex-shrink: 0; }
+
+  /* ── TABLES ── */
+  .term-table { width: 100%; border-collapse: collapse; margin: 1rem 0; font-size: 13px; }
+  .term-table th { text-align: left; padding: 9px 12px; background: var(--surface3); color: var(--muted); font-size: 11px; text-transform: uppercase; letter-spacing: 0.06em; font-weight: 600; }
+  .term-table td { padding: 9px 12px; border-bottom: 1px solid var(--border); color: #b0bcd0; vertical-align: top; line-height: 1.5; }
+  .term-table td:first-child { color: #7eb8ff; font-family: var(--mono); font-size: 12px; white-space: nowrap; }
+  .term-table tr:last-child td { border-bottom: none; }
+  .term-table tr:hover td { background: rgba(255,255,255,0.02); }
+
+  /* ── DEVICE GRID ── */
+  .device-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; margin: 1rem 0; }
+  .device-card { background: var(--surface2); border: 1px solid var(--border); border-radius: 12px; padding: 1.1rem 0.8rem; text-align: center; font-size: 13px; transition: border-color 0.2s; }
+  .device-card:hover { border-color: rgba(79,142,247,0.3); }
+  .device-card .device-icon { font-size: 30px; margin-bottom: 8px; }
+  .device-card .device-name { color: var(--text); font-weight: 600; font-size: 13px; }
+  .device-card .device-note { color: var(--muted); font-size: 11px; margin-top: 4px; line-height: 1.4; }
+  .device-card .device-spec { color: #89b4fa; font-family: var(--mono); font-size: 10px; margin-top: 4px; }
+
+  /* ── PROTOCOL GRID ── */
+  .proto-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 10px; margin: 1rem 0; }
+  .proto-card { background: var(--surface2); border: 1px solid var(--border); border-radius: 10px; padding: 1rem; }
+  .proto-name { font-family: var(--mono); font-size: 13px; font-weight: 700; color: var(--accent); margin-bottom: 4px; }
+  .proto-range { font-size: 11px; color: var(--amber); margin-bottom: 6px; }
+  .proto-freq { font-size: 11px; color: var(--teal); margin-bottom: 6px; }
+  .proto-desc { font-size: 12px; color: var(--muted); line-height: 1.5; }
+
+  /* ── TOPOLOGY ── */
+  .topology {
+    display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px;
+    background: var(--surface2); border: 1px solid var(--border);
+    border-radius: 12px; padding: 1.2rem; margin: 1rem 0; text-align: center; font-size: 12px;
+  }
+  .topology-node { background: var(--surface3); border: 1px solid var(--border2); border-radius: 8px; padding: 0.8rem 0.5rem; color: var(--text); }
+  .topology-arrow { display: flex; align-items: center; justify-content: center; font-size: 20px; color: var(--accent); }
+
+  /* ── PIPE DIAGRAM ── */
+  .pipeline { display: flex; align-items: center; gap: 0; margin: 1rem 0; overflow-x: auto; padding-bottom: 0.5rem; }
+  .pipe-node { background: var(--surface2); border: 1px solid var(--border2); border-radius: 10px; padding: 0.8rem 1rem; text-align: center; flex-shrink: 0; min-width: 110px; }
+  .pipe-node .pn-icon { font-size: 22px; display: block; margin-bottom: 4px; }
+  .pipe-node .pn-label { font-size: 12px; font-weight: 600; color: var(--text); }
+  .pipe-node .pn-sub { font-size: 10px; color: var(--muted); margin-top: 2px; }
+  .pipe-arrow { font-size: 18px; color: var(--muted); padding: 0 6px; flex-shrink: 0; }
+
+  /* ── DIAGRAM SVG WRAPPER ── */
+  .diagram { background: var(--surface2); border: 1px solid var(--border); border-radius: 12px; padding: 1rem; margin: 1rem 0; overflow-x: auto; }
+  .diagram svg { display: block; margin: 0 auto; }
+
+  /* ── IMAGE CARD ── */
+  .img-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; margin: 1rem 0; }
+  .img-card { background: var(--surface2); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; }
+  .img-card .img-visual { height: 140px; display: flex; align-items: center; justify-content: center; font-size: 56px; background: var(--surface3); }
+  .img-card .img-info { padding: 0.8rem; }
+  .img-card .img-title { font-weight: 600; font-size: 13px; color: var(--text); margin-bottom: 3px; }
+  .img-card .img-desc { font-size: 12px; color: var(--muted); line-height: 1.4; }
+  .img-card .img-spec { font-family: var(--mono); font-size: 10px; color: var(--accent); margin-top: 4px; }
+
+  /* ── QUIZ ── */
+  .quiz { background: var(--surface2); border: 1px solid rgba(124,58,237,0.3); border-radius: 12px; padding: 1.2rem; margin: 1.5rem 0; }
+  .quiz-title { font-size: 12px; text-transform: uppercase; letter-spacing: 0.07em; color: #a78bfa; font-weight: 700; margin-bottom: 0.8rem; }
+  .quiz-q { font-size: 14px; color: var(--text); margin-bottom: 0.8rem; font-weight: 500; }
+  .quiz-options { display: flex; flex-direction: column; gap: 6px; }
+  .quiz-opt {
+    padding: 8px 14px; border-radius: 8px; border: 1px solid var(--border2); background: var(--surface3);
+    cursor: pointer; font-size: 13px; color: #b0bcd0; transition: all 0.15s; text-align: left;
+  }
+  .quiz-opt:hover { border-color: rgba(79,142,247,0.4); color: var(--text); }
+  .quiz-opt.correct { border-color: var(--green); background: rgba(34,197,94,0.1); color: #86efac; }
+  .quiz-opt.wrong { border-color: var(--red); background: rgba(239,68,68,0.08); color: #fca5a5; }
+  .quiz-feedback { margin-top: 0.8rem; font-size: 13px; padding: 8px 12px; border-radius: 8px; display: none; }
+  .quiz-feedback.show { display: block; }
+  .quiz-feedback.ok { background: rgba(34,197,94,0.1); color: #86efac; }
+  .quiz-feedback.bad { background: rgba(239,68,68,0.08); color: #fca5a5; }
+
+  /* ── NAV BOTTOM ── */
+  .nav-bottom { display: flex; justify-content: space-between; align-items: center; margin-top: 3rem; padding-top: 1.5rem; border-top: 1px solid var(--border); }
+  .btn { padding: 9px 20px; border-radius: 8px; border: 1px solid var(--border2); background: var(--surface2); color: var(--text); font-family: var(--sans); font-size: 13px; font-weight: 500; cursor: pointer; transition: all 0.15s; display: flex; align-items: center; gap: 6px; }
+  .btn:hover { background: var(--surface3); border-color: var(--accent); }
+  .btn.primary { background: rgba(79,142,247,0.15); border-color: rgba(79,142,247,0.4); color: #7eb8ff; }
+  .btn.primary:hover { background: rgba(79,142,247,0.25); }
+  .btn:disabled { opacity: 0.3; cursor: default; pointer-events: none; }
+  .progress-bar { flex: 1; margin: 0 1.2rem; height: 4px; background: var(--surface3); border-radius: 2px; overflow: hidden; }
+  .progress-fill { height: 100%; background: linear-gradient(90deg, var(--accent), #7c3aed); border-radius: 2px; transition: width 0.35s; }
+  .progress-text { font-size: 12px; color: var(--muted); font-family: var(--mono); white-space: nowrap; }
+
+  /* ── BREADCRUMB ── */
+  .breadcrumb { font-size: 12px; color: var(--muted); margin-bottom: 1.5rem; display: flex; gap: 6px; align-items: center; }
+  .breadcrumb span { color: #7eb8ff; }
+
+  /* ── HIGHLIGHT BOX ── */
+  .highlight-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 10px; margin: 1rem 0; }
+  .highlight-card { background: var(--surface2); border: 1px solid var(--border); border-radius: 10px; padding: 1rem; }
+  .highlight-card .hc-num { font-size: 1.8rem; font-weight: 700; color: var(--accent); font-family: var(--mono); }
+  .highlight-card .hc-label { font-size: 12px; color: var(--text); font-weight: 500; margin-top: 2px; }
+  .highlight-card .hc-desc { font-size: 11px; color: var(--muted); margin-top: 4px; line-height: 1.4; }
+
+  /* ── LAYERS ── */
+  .layer-stack { display: flex; flex-direction: column; gap: 0; margin: 1rem 0; }
+  .layer { display: flex; align-items: center; gap: 1rem; padding: 0.9rem 1.2rem; border: 1px solid var(--border); border-bottom: none; font-size: 13px; transition: background 0.15s; }
+  .layer:first-child { border-radius: 10px 10px 0 0; }
+  .layer:last-child  { border-bottom: 1px solid var(--border); border-radius: 0 0 10px 10px; }
+  .layer:hover { background: var(--surface2); }
+  .layer-num { font-family: var(--mono); font-size: 10px; color: var(--muted); min-width: 20px; }
+  .layer-name { font-weight: 600; color: var(--text); min-width: 140px; }
+  .layer-tech { color: var(--accent); font-family: var(--mono); font-size: 11px; min-width: 160px; }
+  .layer-desc { color: var(--muted); font-size: 12px; }
+
+  /* ── PIN DIAGRAM ── */
+  .pin-table { width: 100%; border-collapse: collapse; margin: 1rem 0; font-size: 12px; font-family: var(--mono); }
+  .pin-table th { padding: 7px 10px; background: var(--surface3); color: var(--muted); text-align: left; font-size: 10px; text-transform: uppercase; letter-spacing: 0.06em; }
+  .pin-table td { padding: 7px 10px; border-bottom: 1px solid var(--border); }
+  .pin-table td:first-child { color: var(--amber); }
+  .pin-table td:nth-child(2) { color: #89b4fa; }
+  .pin-table td:nth-child(3) { color: #a6e3a1; }
+  .pin-table td:last-child { color: var(--muted); font-size: 11px; font-family: var(--sans); }
+
+  /* Scrollbar */
+  ::-webkit-scrollbar { width: 5px; height: 5px; }
+  ::-webkit-scrollbar-track { background: var(--surface); }
+  ::-webkit-scrollbar-thumb { background: var(--surface3); border-radius: 3px; }
+
+  /* Mobile */
+  @media (max-width: 720px) {
+    .sidebar { display: none; }
+    .main { padding: 1.2rem; max-width: 100%; }
+    .hero { padding: 2rem 1rem 1.5rem; }
+    .nav-bottom { flex-wrap: wrap; gap: 0.8rem; }
+    .progress-bar { order: 3; flex-basis: 100%; margin: 0; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ══ HERO ══ -->
+<div class="hero">
+  <div class="hero-badge">🌐 Natcom Training Program · Full IoT Course</div>
+  <h1>Internet of Things<br>Complete Curriculum</h1>
+  <p>A structured, hands-on journey from microcontroller basics to cloud-connected intelligent devices. Built for Natcom's internship program with Obed.</p>
+  <div class="hero-stats">
+    <div class="stat"><div class="stat-num">12</div><div class="stat-label">Modules</div></div>
+    <div class="stat"><div class="stat-num">50+</div><div class="stat-label">Code Examples</div></div>
+    <div class="stat"><div class="stat-num">8</div><div class="stat-label">Real Projects</div></div>
+    <div class="stat"><div class="stat-num">16</div><div class="stat-label">Weeks</div></div>
+  </div>
+</div>
+
+<!-- ══ LAYOUT ══ -->
+<div class="layout">
+
+<!-- ══ SIDEBAR ══ -->
+<nav class="sidebar">
+  <div class="sidebar-title">Course Modules</div>
+
+  <div class="sidebar-section">Foundation</div>
+  <button class="nav-item active" onclick="go(0)"><span class="nav-num">1</span> C++ Fundamentals</button>
+  <button class="nav-item" onclick="go(1)"><span class="nav-num">2</span> Electronics Basics</button>
+
+  <div class="sidebar-section">Core IoT</div>
+  <button class="nav-item" onclick="go(2)"><span class="nav-num">3</span> IoT Introduction</button>
+  <button class="nav-item" onclick="go(3)"><span class="nav-num">4</span> IoT Architecture</button>
+  <button class="nav-item" onclick="go(4)"><span class="nav-num">5</span> Sensors & Actuators</button>
+  <button class="nav-item" onclick="go(5)"><span class="nav-num">6</span> Connectivity & Protocols</button>
+
+  <div class="sidebar-section">Tools & Simulation</div>
+  <button class="nav-item" onclick="go(6)"><span class="nav-num">7</span> Cisco Packet Tracer</button>
+  <button class="nav-item" onclick="go(7)"><span class="nav-num">8</span> Arduino & ESP32</button>
+
+  <div class="sidebar-section">Software & Cloud</div>
+  <button class="nav-item" onclick="go(8)"><span class="nav-num">9</span> Python for IoT</button>
+  <button class="nav-item" onclick="go(9)"><span class="nav-num">10</span> Cloud & Dashboards</button>
+
+  <div class="sidebar-section">Advanced</div>
+  <button class="nav-item" onclick="go(10)"><span class="nav-num">11</span> IoT Security</button>
+  <button class="nav-item" onclick="go(11)"><span class="nav-num">12</span> Capstone Project</button>
+</nav>
+
+<!-- ══ MAIN CONTENT ══ -->
+<main class="main">
+
+<!-- ══════════════════════════════════════════════════════════════ -->
+<!-- MODULE 1: C++ FUNDAMENTALS -->
+<!-- ══════════════════════════════════════════════════════════════ -->
+<section class="module active" id="m0">
+  <div class="breadcrumb">🏠 Home › <span>Module 1: C++ Fundamentals</span></div>
+  <div class="module-header">
+    <div class="module-icon" style="background:rgba(79,142,247,0.15);border:1px solid rgba(79,142,247,0.3)">💻</div>
+    <div class="module-meta">
+      <div class="module-label">Module 1 — Foundation</div>
+      <div class="module-title">C++ Programming Fundamentals</div>
+      <div class="module-desc">The language that powers embedded systems, Arduino, and every IoT microcontroller.</div>
+      <div class="module-tags">
+        <span class="tag tag-blue">beginner</span>
+        <span class="tag tag-amber">~3 weeks</span>
+        <span class="tag tag-green">Arduino-ready</span>
+        <span class="tag tag-purple">ESP32</span>
+      </div>
+    </div>
+  </div>
+
+  <h2>Why C++ for IoT?</h2>
+  <p>Most microcontrollers — Arduino Uno, ESP32, STM32, Raspberry Pi Pico — are programmed in C or C++. C++ gives you <strong>direct hardware access</strong>: control pins, read sensors, manage memory manually. This is essential when your chip has only 2KB of RAM and must react in milliseconds.</p>
+
+  <div class="highlight-grid">
+    <div class="highlight-card"><div class="hc-num">2 KB</div><div class="hc-label">Arduino Uno RAM</div><div class="hc-desc">C++ lets you control every byte</div></div>
+    <div class="highlight-card"><div class="hc-num">16 MHz</div><div class="hc-label">Arduino clock speed</div><div class="hc-desc">Compiled C++ runs at full speed</div></div>
+    <div class="highlight-card"><div class="hc-num">240 MHz</div><div class="hc-label">ESP32 clock speed</div><div class="hc-desc">Dual-core, WiFi, BLE — still C++</div></div>
+    <div class="highlight-card"><div class="hc-num">&lt;1ms</div><div class="hc-label">Sensor response</div><div class="hc-desc">C++ reacts in microseconds</div></div>
+  </div>
+
+  <div class="info-box note">
+    <div class="title">🎯 Learning Goal</div>
+    By the end of this module you will write a C++ program that reads a temperature sensor, makes a decision, and controls an LED — the foundation of every IoT device.
+  </div>
+
+  <h2>Setting Up Your Environment</h2>
+  <div class="img-row">
+    <div class="img-card">
+      <div class="img-visual">🖥️</div>
+      <div class="img-info">
+        <div class="img-title">VS Code</div>
+        <div class="img-desc">Install the C/C++ extension by Microsoft + Arduino extension by Microsoft</div>
+        <div class="img-spec">code.visualstudio.com</div>
+      </div>
+    </div>
+    <div class="img-card">
+      <div class="img-visual">⚡</div>
+      <div class="img-info">
+        <div class="img-title">Arduino IDE 2.x</div>
+        <div class="img-desc">The standard environment for programming Arduino boards. Includes board manager and library manager.</div>
+        <div class="img-spec">arduino.cc/en/software</div>
+      </div>
+    </div>
+    <div class="img-card">
+      <div class="img-visual">🔧</div>
+      <div class="img-info">
+        <div class="img-title">GCC Compiler</div>
+        <div class="img-desc">On Windows: install MinGW-w64. On Linux/Mac: already installed. Used for desktop C++ practice.</div>
+        <div class="img-spec">gcc --version</div>
+      </div>
+    </div>
+  </div>
+
+  <h2>Core Concepts</h2>
+
+  <h3>1 · Variables and Data Types</h3>
+  <p>Every value stored in a C++ program has a <strong>type</strong>. On a microcontroller with limited RAM, choosing the smallest type that fits your data is important.</p>
+  <div class="code-block">
+    <div class="code-header"><div class="code-lang"><span class="lang-dot" style="background:#89b4fa"></span> cpp</div><span>variables.cpp</span></div>
+    <pre><span class="cmt">// Integer types — whole numbers</span>
+<span class="kw">int</span>          ledPin    = <span class="num">13</span>;     <span class="cmt">// -32768 to 32767 on Arduino (2 bytes)</span>
+<span class="kw">long</span>         timestamp = <span class="num">0</span>;      <span class="cmt">// 4 bytes — for millis() values</span>
+<span class="kw">unsigned int</span> count     = <span class="num">0</span>;      <span class="cmt">// 0 to 65535 — never negative</span>
+<span class="kw">byte</span>         pinState  = <span class="num">0</span>;      <span class="cmt">// 0 to 255 — 1 byte, great for pin values</span>
+
+<span class="cmt">// Floating point — decimal numbers</span>
+<span class="kw">float</span>  temperature = <span class="num">25.4</span>;      <span class="cmt">// 4 bytes — sensor readings</span>
+<span class="kw">double</span> precise     = <span class="num">3.14159</span>;  <span class="cmt">// 8 bytes — avoid on small chips</span>
+
+<span class="cmt">// Other types</span>
+<span class="kw">bool</span>   isOn  = <span class="kw">true</span>;            <span class="cmt">// true / false</span>
+<span class="kw">char</span>   grade = <span class="str">'A'</span>;             <span class="cmt">// single character (1 byte)</span>
+<span class="type">String</span> name  = <span class="str">"Natcom"</span>;        <span class="cmt">// dynamic string — use sparingly on Arduino</span>
+
+<span class="cmt">// Constants — values that never change</span>
+<span class="kw">const int</span> SENSOR_PIN = <span class="op">A0</span>;      <span class="cmt">// uppercase names for constants by convention</span>
+<span class="pp">#define</span> LED_PIN <span class="num">13</span>             <span class="cmt">// preprocessor constant — no memory used</span></pre>
+  </div>
+
+  <h3>2 · Operators</h3>
+  <div class="code-block">
+    <div class="code-header"><div class="code-lang"><span class="lang-dot" style="background:#89b4fa"></span> cpp</div><span>operators.cpp</span></div>
+    <pre><span class="cmt">// Arithmetic</span>
+<span class="kw">int</span> a = <span class="num">10</span> + <span class="num">3</span>;   <span class="cmt">// 13</span>
+<span class="kw">int</span> b = <span class="num">10</span> - <span class="num">3</span>;   <span class="cmt">// 7</span>
+<span class="kw">int</span> c = <span class="num">10</span> * <span class="num">3</span>;   <span class="cmt">// 30</span>
+<span class="kw">int</span> d = <span class="num">10</span> / <span class="num">3</span>;   <span class="cmt">// 3  (integer division — no decimals)</span>
+<span class="kw">int</span> e = <span class="num">10</span> % <span class="num">3</span>;   <span class="cmt">// 1  (modulo — remainder)</span>
+
+<span class="cmt">// Comparison — returns true or false</span>
+<span class="kw">bool</span> isHot    = (temp > <span class="num">30</span>);    <span class="cmt">// greater than</span>
+<span class="kw">bool</span> isSame   = (x == y);       <span class="cmt">// equal to  (NOT = which is assignment)</span>
+<span class="kw">bool</span> isDiff   = (x != y);       <span class="cmt">// not equal</span>
+<span class="kw">bool</span> isInRange = (x >= <span class="num">10</span> && x <= <span class="num">50</span>); <span class="cmt">// AND</span>
+<span class="kw">bool</span> either   = (x < <span class="num">5</span> || x > <span class="num">95</span>);   <span class="cmt">// OR</span>
+
+<span class="cmt">// Bitwise — used to set individual pins in a register</span>
+<span class="kw">byte</span> mask = <span class="num">0b00000100</span>;     <span class="cmt">// bit 2 = 1</span>
+PORTB |= mask;               <span class="cmt">// set bit 2 HIGH (turn on pin)</span>
+PORTB &= ~mask;              <span class="cmt">// set bit 2 LOW  (turn off pin)</span></pre>
+  </div>
+
+  <h3>3 · If / Else — Decision Making</h3>
+  <div class="code-block">
+    <div class="code-header"><div class="code-lang"><span class="lang-dot" style="background:#89b4fa"></span> cpp</div><span>decisions.cpp</span></div>
+    <pre><span class="kw">float</span> temp = <span class="fn">readTemperature</span>();
+
+<span class="kw">if</span> (temp > <span class="num">35</span>) {
+  <span class="fn">Serial.println</span>(<span class="str">"CRITICAL: Overheating! Fan ON + Alert"</span>);
+  <span class="fn">digitalWrite</span>(FAN_PIN, <span class="op">HIGH</span>);
+  <span class="fn">sendAlert</span>();
+} <span class="kw">else if</span> (temp > <span class="num">28</span>) {
+  <span class="fn">Serial.println</span>(<span class="str">"Warm — Fan ON"</span>);
+  <span class="fn">digitalWrite</span>(FAN_PIN, <span class="op">HIGH</span>);
+} <span class="kw">else if</span> (temp > <span class="num">18</span>) {
+  <span class="fn">Serial.println</span>(<span class="str">"Comfortable"</span>);
+  <span class="fn">digitalWrite</span>(FAN_PIN, <span class="op">LOW</span>);
+} <span class="kw">else</span> {
+  <span class="fn">Serial.println</span>(<span class="str">"Cold — Heater ON"</span>);
+  <span class="fn">digitalWrite</span>(HEATER_PIN, <span class="op">HIGH</span>);
+}
+
+<span class="cmt">// Ternary operator — shorthand if/else</span>
+<span class="type">String</span> status = (temp > <span class="num">28</span>) ? <span class="str">"HOT"</span> : <span class="str">"OK"</span>;</pre>
+  </div>
+
+  <h3>4 · Loops — Repeating Actions</h3>
+  <div class="code-block">
+    <div class="code-header"><div class="code-lang"><span class="lang-dot" style="background:#89b4fa"></span> cpp</div><span>loops.cpp</span></div>
+    <pre><span class="cmt">// FOR loop — blink an LED exactly 5 times</span>
+<span class="kw">for</span> (<span class="kw">int</span> i = <span class="num">0</span>; i < <span class="num">5</span>; i++) {
+  <span class="fn">digitalWrite</span>(<span class="num">13</span>, <span class="op">HIGH</span>);  <span class="fn">delay</span>(<span class="num">300</span>);
+  <span class="fn">digitalWrite</span>(<span class="num">13</span>, <span class="op">LOW</span>);   <span class="fn">delay</span>(<span class="num">300</span>);
+}
+
+<span class="cmt">// WHILE loop — keep reading sensor while button is held</span>
+<span class="kw">while</span> (<span class="fn">digitalRead</span>(BTN_PIN) == <span class="op">HIGH</span>) {
+  <span class="kw">int</span> raw = <span class="fn">analogRead</span>(<span class="op">A0</span>);
+  <span class="fn">Serial.println</span>(raw);
+  <span class="fn">delay</span>(<span class="num">100</span>);
+}
+
+<span class="cmt">// DO-WHILE — runs at least once</span>
+<span class="kw">do</span> {
+  <span class="fn">Serial.println</span>(<span class="str">"Connecting..."</span>);
+  <span class="fn">delay</span>(<span class="num">500</span>);
+} <span class="kw">while</span> (WiFi.<span class="fn">status</span>() != WL_CONNECTED);
+
+<span class="cmt">// Range-based for loop (C++11) — iterate over array</span>
+<span class="kw">int</span> pins[] = {<span class="num">2</span>, <span class="num">3</span>, <span class="num">4</span>, <span class="num">5</span>};
+<span class="kw">for</span> (<span class="kw">int</span> pin : pins) {
+  <span class="fn">pinMode</span>(pin, <span class="op">OUTPUT</span>);
+  <span class="fn">digitalWrite</span>(pin, <span class="op">LOW</span>);
+}</pre>
+  </div>
+
+  <h3>5 · Functions — Reusable Blocks</h3>
+  <div class="code-block">
+    <div class="code-header"><div class="code-lang"><span class="lang-dot" style="background:#89b4fa"></span> cpp</div><span>functions.cpp</span></div>
+    <pre><span class="cmt">// Function declaration: returnType name(parameters)</span>
+<span class="kw">float</span> <span class="fn">toVoltage</span>(<span class="kw">int</span> rawADC) {
+  <span class="kw">return</span> rawADC * (<span class="num">3.3</span> / <span class="num">4095.0</span>);   <span class="cmt">// ESP32: 12-bit ADC, 3.3V</span>
+}
+
+<span class="kw">float</span> <span class="fn">toCelsius</span>(<span class="kw">float</span> voltage) {
+  <span class="kw">return</span> (voltage - <span class="num">0.5</span>) * <span class="num">100.0</span>;   <span class="cmt">// LM35 formula</span>
+}
+
+<span class="kw">void</span> <span class="fn">blinkPattern</span>(<span class="kw">int</span> pin, <span class="kw">int</span> times, <span class="kw">int</span> ms) {
+  <span class="kw">for</span> (<span class="kw">int</span> i = <span class="num">0</span>; i < times; i++) {
+    <span class="fn">digitalWrite</span>(pin, <span class="op">HIGH</span>); <span class="fn">delay</span>(ms);
+    <span class="fn">digitalWrite</span>(pin, <span class="op">LOW</span>);  <span class="fn">delay</span>(ms);
+  }
+}
+
+<span class="cmt">// Using the functions together</span>
+<span class="kw">void</span> <span class="fn">loop</span>() {
+  <span class="kw">int</span>   raw     = <span class="fn">analogRead</span>(<span class="op">A0</span>);
+  <span class="kw">float</span> voltage = <span class="fn">toVoltage</span>(raw);
+  <span class="kw">float</span> temp    = <span class="fn">toCelsius</span>(voltage);
+
+  <span class="fn">Serial.printf</span>(<span class="str">"Raw: %d | V: %.2f | Temp: %.1f C\n"</span>, raw, voltage, temp);
+
+  <span class="kw">if</span> (temp > <span class="num">30</span>) <span class="fn">blinkPattern</span>(<span class="num">13</span>, <span class="num">3</span>, <span class="num">100</span>);  <span class="cmt">// 3 fast blinks = alert</span>
+  <span class="fn">delay</span>(<span class="num">2000</span>);
+}</pre>
+  </div>
+
+  <h3>6 · Arrays and Structs</h3>
+  <div class="code-block">
+    <div class="code-header"><div class="code-lang"><span class="lang-dot" style="background:#89b4fa"></span> cpp</div><span>arrays_structs.cpp</span></div>
+    <pre><span class="cmt">// Array — multiple values of same type</span>
+<span class="kw">float</span> readings[<span class="num">10</span>];        <span class="cmt">// 10 floats</span>
+<span class="kw">int</span>   ledPins[] = {<span class="num">2</span>,<span class="num">3</span>,<span class="num">4</span>,<span class="num">5</span>};  <span class="cmt">// size inferred = 4</span>
+
+<span class="cmt">// Circular buffer for smoothing sensor noise</span>
+<span class="kw">float</span> buf[<span class="num">5</span>] = {<span class="num">0</span>};
+<span class="kw">int</span>   idx    = <span class="num">0</span>;
+
+<span class="kw">void</span> <span class="fn">addSample</span>(<span class="kw">float</span> v) { buf[idx++ % <span class="num">5</span>] = v; }
+
+<span class="kw">float</span> <span class="fn">smoothed</span>() {
+  <span class="kw">float</span> s = <span class="num">0</span>;
+  <span class="kw">for</span> (<span class="kw">float</span> v : buf) s += v;
+  <span class="kw">return</span> s / <span class="num">5.0</span>;
+}
+
+<span class="cmt">// Struct — group related values into one object</span>
+<span class="kw">struct</span> <span class="type">SensorData</span> {
+  <span class="kw">float</span> temperature;
+  <span class="kw">float</span> humidity;
+  <span class="kw">bool</span>  motionDetected;
+  <span class="kw">long</span>  timestamp;
+};
+
+<span class="type">SensorData</span> room1;
+room1.temperature    = <span class="num">24.5</span>;
+room1.humidity       = <span class="num">62.0</span>;
+room1.motionDetected = <span class="kw">false</span>;
+room1.timestamp      = <span class="fn">millis</span>();</pre>
+  </div>
+
+  <h3>7 · Classes — Object-Oriented for Devices</h3>
+  <div class="code-block">
+    <div class="code-header"><div class="code-lang"><span class="lang-dot" style="background:#89b4fa"></span> cpp</div><span>TemperatureSensor.h</span></div>
+    <pre><span class="kw">class</span> <span class="type">TemperatureSensor</span> {
+  <span class="kw">private</span>:
+    <span class="kw">int</span>   _pin;
+    <span class="kw">float</span> _lastReading;
+
+  <span class="kw">public</span>:
+    <span class="cmt">// Constructor</span>
+    <span class="type">TemperatureSensor</span>(<span class="kw">int</span> pin) : _pin(pin), _lastReading(<span class="num">0</span>) {}
+
+    <span class="kw">float</span> <span class="fn">read</span>() {
+      <span class="kw">int</span>   raw = <span class="fn">analogRead</span>(_pin);
+      <span class="kw">float</span> v   = raw * (<span class="num">3.3</span> / <span class="num">4095.0</span>);
+      _lastReading = (v - <span class="num">0.5</span>) * <span class="num">100.0</span>;
+      <span class="kw">return</span> _lastReading;
+    }
+
+    <span class="kw">bool</span> <span class="fn">isOverheating</span>() { <span class="kw">return</span> _lastReading > <span class="num">35.0</span>; }
+    <span class="kw">float</span> <span class="fn">last</span>() { <span class="kw">return</span> _lastReading; }
+};
+
+<span class="cmt">// Usage — clean, readable code</span>
+<span class="type">TemperatureSensor</span> sensor(<span class="op">A0</span>);
+
+<span class="kw">void</span> <span class="fn">loop</span>() {
+  <span class="kw">float</span> t = sensor.<span class="fn">read</span>();
+  <span class="kw">if</span> (sensor.<span class="fn">isOverheating</span>()) <span class="fn">triggerAlert</span>();
+}</pre>
+  </div>
+
+  <h2>Complete First Program — Blink + Sensor + Serial</h2>
+  <div class="code-block">
+    <div class="code-header"><div class="code-lang"><span class="lang-dot" style="background:#89b4fa"></span> cpp / Arduino</div><span>first_program.ino — Full Sketch</span></div>
+    <pre><span class="cmt">/*
+ * Natcom IoT Training — Module 1 Starter Project
+ * Reads LM35 temperature sensor, blinks LED on hot reading,
+ * prints data to Serial Monitor.
+ */</span>
+
+<span class="pp">#define</span> LED_PIN    <span class="num">13</span>
+<span class="pp">#define</span> SENSOR_PIN <span class="op">A0</span>
+<span class="pp">#define</span> HOT_TEMP   <span class="num">28.0</span>
+
+<span class="cmt">// ── Sensor reading function</span>
+<span class="kw">float</span> <span class="fn">readTempC</span>() {
+  <span class="kw">int</span>   raw     = <span class="fn">analogRead</span>(SENSOR_PIN);
+  <span class="kw">float</span> voltage = raw * (<span class="num">5.0</span> / <span class="num">1023.0</span>);
+  <span class="kw">return</span> voltage * <span class="num">100.0</span>;  <span class="cmt">// LM35: 10mV/°C</span>
+}
+
+<span class="cmt">// ── Blink helper function</span>
+<span class="kw">void</span> <span class="fn">alertBlink</span>(<span class="kw">int</span> count) {
+  <span class="kw">for</span> (<span class="kw">int</span> i = <span class="num">0</span>; i < count; i++) {
+    <span class="fn">digitalWrite</span>(LED_PIN, <span class="op">HIGH</span>); <span class="fn">delay</span>(<span class="num">150</span>);
+    <span class="fn">digitalWrite</span>(LED_PIN, <span class="op">LOW</span>);  <span class="fn">delay</span>(<span class="num">150</span>);
+  }
+}
+
+<span class="kw">void</span> <span class="fn">setup</span>() {
+  <span class="fn">pinMode</span>(LED_PIN, <span class="op">OUTPUT</span>);
+  <span class="fn">Serial.begin</span>(<span class="num">9600</span>);
+  <span class="fn">Serial.println</span>(<span class="str">"=== Natcom Temp Monitor ==="</span>);
+}
+
+<span class="kw">void</span> <span class="fn">loop</span>() {
+  <span class="kw">float</span> temp = <span class="fn">readTempC</span>();
+
+  <span class="fn">Serial.print</span>(<span class="str">"Temperature: "</span>);
+  <span class="fn">Serial.print</span>(temp, <span class="num">1</span>);
+  <span class="fn">Serial.println</span>(<span class="str">" °C"</span>);
+
+  <span class="kw">if</span> (temp > HOT_TEMP) {
+    <span class="fn">Serial.println</span>(<span class="str">"⚠ TOO HOT!"</span>);
+    <span class="fn">alertBlink</span>(<span class="num">3</span>);
+  } <span class="kw">else</span> {
+    <span class="fn">digitalWrite</span>(LED_PIN, <span class="op">LOW</span>);
+  }
+
+  <span class="fn">delay</span>(<span class="num">1000</span>);
+}</pre>
+  </div>
+
+  <div class="info-box do">
+    <div class="title">✅ Practice Tasks</div>
+    1. Modify <code>HOT_TEMP</code> to 25°C — watch the LED trigger more often.<br>
+    2. Add a second LED on pin 12 that stays ON when temperature is below 18°C (cold alert).<br>
+    3. Write a function <code>float readVoltage(int pin)</code> that returns raw ADC as voltage.<br>
+    4. Store the last 5 readings in an array and print the average each loop.
+  </div>
+
+  <!-- QUIZ -->
+  <div class="quiz">
+    <div class="quiz-title">🧠 Quick Check — Module 1</div>
+    <div class="quiz-q">On an Arduino Uno, the <code>int</code> type stores how many bytes?</div>
+    <div class="quiz-options">
+      <button class="quiz-opt" onclick="checkQ(this,'wrong')">4 bytes (same as PC)</button>
+      <button class="quiz-opt" onclick="checkQ(this,'correct')">2 bytes (range: -32768 to 32767)</button>
+      <button class="quiz-opt" onclick="checkQ(this,'wrong')">1 byte</button>
+      <button class="quiz-opt" onclick="checkQ(this,'wrong')">8 bytes</button>
+    </div>
+    <div class="quiz-feedback">Arduino uses 8-bit AVR CPU where int = 2 bytes. On ESP32 (32-bit), int = 4 bytes. Always check your board!</div>
+  </div>
+
+  <div class="nav-bottom">
+    <button class="btn" disabled>← Previous</button>
+    <div class="progress-bar"><div class="progress-fill" style="width:8%"></div></div>
+    <span class="progress-text">1 / 12</span>
+    <button class="btn primary" onclick="go(1)">Next: Electronics →</button>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════════════════════════ -->
+<!-- MODULE 2: ELECTRONICS BASICS -->
+<!-- ══════════════════════════════════════════════════════════════ -->
+<section class="module" id="m1">
+  <div class="breadcrumb">🏠 Home › <span>Module 2: Electronics Basics</span></div>
+  <div class="module-header">
+    <div class="module-icon" style="background:rgba(245,158,11,0.15);border:1px solid rgba(245,158,11,0.3)">⚡</div>
+    <div class="module-meta">
+      <div class="module-label">Module 2 — Foundation</div>
+      <div class="module-title">Electronics & Circuit Basics</div>
+      <div class="module-desc">Voltage, current, resistance, components — the physics behind every IoT device you'll build.</div>
+      <div class="module-tags">
+        <span class="tag tag-amber">hardware</span>
+        <span class="tag tag-green">breadboard</span>
+        <span class="tag tag-blue">~1 week</span>
+      </div>
+    </div>
+  </div>
+
+  <h2>The Three Fundamentals</h2>
+  <div class="highlight-grid">
+    <div class="highlight-card"><div class="hc-num">V</div><div class="hc-label">Voltage (Volts)</div><div class="hc-desc">The electrical "pressure" that pushes current through a circuit. Arduino runs on 5V, ESP32 on 3.3V.</div></div>
+    <div class="highlight-card"><div class="hc-num">I</div><div class="hc-label">Current (Amperes)</div><div class="hc-desc">How much electricity flows. Arduino pin max = 40mA. Exceeding this destroys the chip.</div></div>
+    <div class="highlight-card"><div class="hc-num">R</div><div class="hc-label">Resistance (Ohms)</div><div class="hc-desc">Opposition to current flow. Resistors protect LEDs and sensors from too much current.</div></div>
+    <div class="highlight-card"><div class="hc-num">P=VI</div><div class="hc-label">Power (Watts)</div><div class="hc-desc">Electrical power consumed. A motor drawing 500mA at 5V = 2.5W of power.</div></div>
+  </div>
+
+  <div class="info-box note">
+    <div class="title">📐 Ohm's Law — The IoT Builder's Formula</div>
+    <strong>V = I × R</strong> &nbsp;·&nbsp; <strong>I = V / R</strong> &nbsp;·&nbsp; <strong>R = V / I</strong><br><br>
+    Example: LED needs 20mA (0.02A) and drops 2V. Arduino supplies 5V. Needed resistor: R = (5V - 2V) / 0.02A = <strong>150 Ω</strong>. Use the nearest standard value: 220Ω (safe) or 150Ω (bright).
+  </div>
+
+  <h2>Essential Components</h2>
+  <div class="img-row">
+    <div class="img-card">
+      <div class="img-visual">💡</div>
+      <div class="img-info">
+        <div class="img-title">LED</div>
+        <div class="img-desc">Light-Emitting Diode. Always needs a current-limiting resistor (220Ω for 5V Arduino). Long leg = anode (+), short leg = cathode (−).</div>
+        <div class="img-spec">Vf ≈ 2V · If ≈ 10–20mA</div>
+      </div>
+    </div>
+    <div class="img-card">
+      <div class="img-visual">〰️</div>
+      <div class="img-info">
+        <div class="img-title">Resistor</div>
+        <div class="img-desc">Limits current. Read color bands: Brown=1, Black=0, Red=×100, Gold=±5% → 1kΩ. Use 220Ω for LEDs, 10kΩ for pull-up/pull-down.</div>
+        <div class="img-spec">Common: 100Ω 220Ω 1kΩ 10kΩ</div>
+      </div>
+    </div>
+    <div class="img-card">
+      <div class="img-visual">🔋</div>
+      <div class="img-info">
+        <div class="img-title">Capacitor</div>
+        <div class="img-desc">Stores charge, filters noise on power lines. Place 100nF ceramic caps near microcontroller VCC pins to prevent voltage spikes.</div>
+        <div class="img-spec">100nF bypass · 10–100µF bulk</div>
+      </div>
+    </div>
+    <div class="img-card">
+      <div class="img-visual">🎛️</div>
+      <div class="img-info">
+        <div class="img-title">Transistor / MOSFET</div>
+        <div class="img-desc">Amplifies or switches. Use a NPN transistor (BC547) or N-channel MOSFET (IRLZ44N) to drive motors, relays, and high-current loads from an Arduino pin.</div>
+        <div class="img-spec">BC547 · 2N2222 · IRF520</div>
+      </div>
+    </div>
+    <div class="img-card">
+      <div class="img-visual">🔁</div>
+      <div class="img-info">
+        <div class="img-title">Relay Module</div>
+        <div class="img-desc">Electrically controlled switch. Lets a 3.3V/5V Arduino pin control 220V AC appliances (fans, lights). The coil and AC sides are isolated for safety.</div>
+        <div class="img-spec">5V coil · 10A 250VAC rating</div>
+      </div>
+    </div>
+    <div class="img-card">
+      <div class="img-visual">📟</div>
+      <div class="img-info">
+        <div class="img-title">Breadboard</div>
+        <div class="img-desc">Prototype board — no soldering needed. Rows are connected internally. Power rails (+) and (−) run the full length. Inner rows connect across the gap.</div>
+        <div class="img-spec">830 ties · solderless</div>
+      </div>
+    </div>
+  </div>
+
+  <h2>Breadboard Wiring Rules</h2>
+  <div class="diagram">
+    <svg width="520" height="200" viewBox="0 0 520 200" xmlns="http://www.w3.org/2000/svg">
+      <!-- breadboard body -->
+      <rect x="20" y="30" width="480" height="140" rx="8" fill="#1c2030" stroke="#3a4060" stroke-width="1.5"/>
+      <!-- power rail top -->
+      <rect x="30" y="40" width="460" height="20" rx="4" fill="#1a1a2e" stroke="#ef4444" stroke-width="1"/>
+      <text x="40" y="55" fill="#ef4444" font-size="11" font-family="JetBrains Mono,monospace">+ + + + + + + + + + + + + + + + + + + + + + + +</text>
+      <!-- power rail bottom -->
+      <rect x="30" y="140" width="460" height="20" rx="4" fill="#1a1a2e" stroke="#3b82f6" stroke-width="1"/>
+      <text x="40" y="155" fill="#3b82f6" font-size="11" font-family="JetBrains Mono,monospace">− − − − − − − − − − − − − − − − − − − − − − − −</text>
+      <!-- center gap -->
+      <rect x="30" y="93" width="460" height="14" rx="3" fill="#0d0f14"/>
+      <text x="230" y="103" fill="#585b70" font-size="10" font-family="Inter,sans-serif" text-anchor="middle">center gap (DIP chips straddle here)</text>
+      <!-- tie points top rows -->
+      <text x="40" y="90" fill="#a6e3a1" font-size="10" font-family="JetBrains Mono,monospace">a  b  c  d  e     f  g  h  i  j  ←  rows connected across</text>
+      <!-- labels -->
+      <text x="40" y="180" fill="#8a94aa" font-size="11" font-family="Inter,sans-serif">Power rails run full length ↔   ·   Tie-point rows connect short ↕</text>
+    </svg>
+  </div>
+
+  <h2>Digital vs Analog Signals</h2>
+  <table class="term-table">
+    <tr><th>Type</th><th>Values</th><th>Arduino Function</th><th>Example Sensors</th></tr>
+    <tr><td>Digital</td><td>0 (LOW) or 1 (HIGH)</td><td><code>digitalRead(pin)</code> / <code>digitalWrite(pin, val)</code></td><td>Button, PIR, limit switch, relay</td></tr>
+    <tr><td>Analog</td><td>0–1023 (10-bit ADC)</td><td><code>analogRead(pin)</code> — pins A0–A5</td><td>LDR, LM35, potentiometer, soil moisture</td></tr>
+    <tr><td>PWM</td><td>0–255 duty cycle</td><td><code>analogWrite(pin, val)</code> — pins 3,5,6,9,10,11</td><td>LED brightness, motor speed, servo</td></tr>
+    <tr><td>I²C</td><td>Serial protocol (2 wires)</td><td><code>Wire.begin()</code> / <code>Wire.requestFrom()</code></td><td>BMP280 pressure, OLED display, MPU6050</td></tr>
+    <tr><td>SPI</td><td>Serial protocol (4 wires)</td><td><code>SPI.begin()</code></td><td>SD card, NRF24L01 radio, RFID RC522</td></tr>
+    <tr><td>UART</td><td>Serial protocol (TX/RX)</td><td><code>Serial.begin(9600)</code></td><td>GPS module, GSM SIM800, Bluetooth HC-05</td></tr>
+  </table>
+
+  <h2>Connecting a Button (Pull-Down Resistor)</h2>
+  <div class="code-block">
+    <div class="code-header"><div class="code-lang"><span class="lang-dot" style="background:#89b4fa"></span> cpp</div><span>button_pulldown.ino</span></div>
+    <pre><span class="cmt">/*  Wiring:
+ *  Button one leg  → 5V
+ *  Button other leg→ Pin 7 AND 10kΩ resistor to GND
+ *  (resistor "pulls" pin to 0 when button not pressed)
+ */</span>
+<span class="kw">const int</span> BTN = <span class="num">7</span>;
+<span class="kw">const int</span> LED = <span class="num">13</span>;
+
+<span class="kw">void</span> <span class="fn">setup</span>() {
+  <span class="fn">pinMode</span>(BTN, <span class="op">INPUT</span>);          <span class="cmt">// external pull-down</span>
+  <span class="fn">pinMode</span>(LED, <span class="op">OUTPUT</span>);
+}
+
+<span class="kw">void</span> <span class="fn">loop</span>() {
+  <span class="kw">if</span> (<span class="fn">digitalRead</span>(BTN) == <span class="op">HIGH</span>) {
+    <span class="fn">digitalWrite</span>(LED, <span class="op">HIGH</span>);   <span class="cmt">// button pressed</span>
+  } <span class="kw">else</span> {
+    <span class="fn">digitalWrite</span>(LED, <span class="op">LOW</span>);
+  }
+}
+
+<span class="cmt">// Better: use Arduino's built-in pull-up (no resistor needed)</span>
+<span class="kw">void</span> <span class="fn">setup2</span>() {
+  <span class="fn">pinMode</span>(BTN, <span class="op">INPUT_PULLUP</span>);  <span class="cmt">// button→pin, button→GND</span>
+  <span class="cmt">// Logic is INVERTED: LOW = pressed, HIGH = released</span>
+}</pre>
+  </div>
+
+  <div class="info-box warn">
+    <div class="title">⚠️ Voltage Safety Rules</div>
+    • Never connect 5V directly to an ESP32 GPIO pin — it only tolerates 3.3V. Use a voltage divider.<br>
+    • Never exceed 40mA per Arduino pin (use transistor for motors/relays).<br>
+    • Always use GND from the same board — floating ground causes erratic readings.<br>
+    • Disconnect USB before rewiring circuits with motors or relays.
+  </div>
+
+  <div class="nav-bottom">
+    <button class="btn" onclick="go(0)">← C++ Basics</button>
+    <div class="progress-bar"><div class="progress-fill" style="width:16%"></div></div>
+    <span class="progress-text">2 / 12</span>
+    <button class="btn primary" onclick="go(2)">Next: IoT Introduction →</button>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════════════════════════ -->
+<!-- MODULE 3: IOT INTRODUCTION -->
+<!-- ══════════════════════════════════════════════════════════════ -->
+<section class="module" id="m2">
+  <div class="breadcrumb">🏠 Home › <span>Module 3: IoT Introduction</span></div>
+  <div class="module-header">
+    <div class="module-icon" style="background:rgba(20,184,166,0.15);border:1px solid rgba(20,184,166,0.3)">🌐</div>
+    <div class="module-meta">
+      <div class="module-label">Module 3 — Core IoT</div>
+      <div class="module-title">Introduction to the Internet of Things</div>
+      <div class="module-desc">What IoT is, where it came from, how it works, and why it matters for Rwanda and the world.</div>
+      <div class="module-tags">
+        <span class="tag tag-teal">concepts</span>
+        <span class="tag tag-blue">history</span>
+        <span class="tag tag-amber">~1 week</span>
+      </div>
+    </div>
+  </div>
+
+  <h2>What is IoT?</h2>
+  <p>The <strong>Internet of Things</strong> is the network of physical objects embedded with sensors, software, and connectivity to collect and exchange data — without requiring human-to-human or human-to-computer interaction. The core idea: every physical object can become a data source and an actuator.</p>
+
+  <div class="info-box teal">
+    <div class="title">📌 The Simple Equation</div>
+    <strong>Physical Object + Sensors + Microcontroller + Network = IoT Device</strong><br><br>
+    A temperature sensor alone is not IoT. A temperature sensor that sends its reading to the internet every 10 seconds, where a dashboard reads it and turns on a fan automatically — that is IoT.
+  </div>
+
+  <h2>Brief History</h2>
+  <table class="term-table">
+    <tr><th>Year</th><th>Milestone</th></tr>
+    <tr><td>1982</td><td>First "connected" device — a Coke machine at Carnegie Mellon reports its stock and temperature over ARPANET</td></tr>
+    <tr><td>1991</td><td>Mark Weiser coins "Ubiquitous Computing" — computers embedded everywhere</td></tr>
+    <tr><td>1999</td><td>Kevin Ashton coins the term "Internet of Things" at Procter & Gamble while working on RFID supply chains</td></tr>
+    <tr><td>2008</td><td>Number of connected devices surpasses number of humans on Earth</td></tr>
+    <tr><td>2012</td><td>Raspberry Pi launches — $35 Linux computer enables mass DIY IoT</td></tr>
+    <tr><td>2014</td><td>Google buys Nest for $3.2B — smart home goes mainstream</td></tr>
+    <tr><td>2020</td><td>COVID-19 accelerates IoT in healthcare: remote patient monitoring, smart hospitals</td></tr>
+    <tr><td>2024</td><td>20+ billion connected devices globally. LoRaWAN networks active in 170+ countries including Rwanda</td></tr>
+  </table>
+
+  <h2>IoT in Africa — Real Deployments</h2>
+  <div class="device-grid">
+    <div class="device-card"><div class="device-icon">🌾</div><div class="device-name">Smart Farming</div><div class="device-note">Soil sensors + LoRa → auto irrigation in Kenya, Ethiopia, Rwanda</div></div>
+    <div class="device-card"><div class="device-icon">💧</div><div class="device-name">Water Quality</div><div class="device-note">Sensors in lakes + rivers monitor pollution in real time</div></div>
+    <div class="device-card"><div class="device-icon">🐄</div><div class="device-name">Livestock Track</div><div class="device-note">GPS collars on cattle stream location to farmer's phone</div></div>
+    <div class="device-card"><div class="device-icon">🌡️</div><div class="device-name">Cold Chain</div><div class="device-note">Temperature monitors in medicine transport trucks in Rwanda</div></div>
+    <div class="device-card"><div class="device-icon">⚡</div><div class="device-name">Smart Meters</div><div class="device-note">RECO / EUCL deploying smart electricity meters in Kigali</div></div>
+    <div class="device-card"><div class="device-icon">🏙️</div><div class="device-name">Smart City</div><div class="device-note">Traffic sensors + waste management in Kigali Vision 2050 plan</div></div>
+  </div>
+
+  <h2>IoT Market Scale</h2>
+  <div class="highlight-grid">
+    <div class="highlight-card"><div class="hc-num">20B+</div><div class="hc-label">Connected devices</div><div class="hc-desc">Globally in 2024</div></div>
+    <div class="highlight-card"><div class="hc-num">$1.1T</div><div class="hc-label">Market size 2028</div><div class="hc-desc">Projected global IoT revenue</div></div>
+    <div class="highlight-card"><div class="hc-num">41.6B</div><div class="hc-label">Devices by 2025</div><div class="hc-desc">IoT Analytics forecast</div></div>
+    <div class="highlight-card"><div class="hc-num">127</div><div class="hc-label">New devices/second</div><div class="hc-desc">Connected to internet every second</div></div>
+  </div>
+
+  <h2>DIKW Pyramid — From Data to Wisdom</h2>
+  <p>IoT systems don't just collect data — they must turn raw numbers into useful decisions. The DIKW pyramid explains the transformation:</p>
+  <div class="layer-stack">
+    <div class="layer" style="background:rgba(239,68,68,0.06)"><span class="layer-num">4</span><span class="layer-name" style="color:#fca5a5">🧠 Wisdom</span><span class="layer-tech">Action / Automation</span><span class="layer-desc">"The AC in Room 3 is failing — schedule maintenance before it breaks"</span></div>
+    <div class="layer" style="background:rgba(245,158,11,0.06)"><span class="layer-num">3</span><span class="layer-name" style="color:#fcd34d">📚 Knowledge</span><span class="layer-tech">Pattern / Rule</span><span class="layer-desc">"Room 3 has exceeded 35°C five times this week"</span></div>
+    <div class="layer" style="background:rgba(79,142,247,0.06)"><span class="layer-num">2</span><span class="layer-name" style="color:#7eb8ff">ℹ️ Information</span><span class="layer-tech">Context / Meaning</span><span class="layer-desc">"38.4°C recorded at 2:34 PM in Room 3 on Server Floor B"</span></div>
+    <div class="layer"><span class="layer-num">1</span><span class="layer-name">📊 Data</span><span class="layer-tech">Raw Numbers</span><span class="layer-desc">"38.4" — just a number from a temperature sensor</span></div>
+  </div>
+
+  <h2>IoT vs Traditional Computing</h2>
+  <table class="term-table">
+    <tr><th>Aspect</th><th>Traditional Computer</th><th>IoT Device</th></tr>
+    <tr><td>Interaction</td><td>Human uses keyboard/screen</td><td>Automatic, no human needed</td></tr>
+    <tr><td>Data</td><td>User-created (documents, web)</td><td>Sensor-generated (physical world)</td></tr>
+    <tr><td>Power</td><td>Watts to hundreds of watts</td><td>Microwatts to milliwatts (battery lasts years)</td></tr>
+    <tr><td>CPU</td><td>Multi-GHz, multi-core</td><td>8–240 MHz single/dual core</td></tr>
+    <tr><td>OS</td><td>Windows, Linux, macOS</td><td>Bare metal or RTOS (FreeRTOS)</td></tr>
+    <tr><td>Scale</td><td>One per person</td><td>Hundreds per building, millions per city</td></tr>
+  </table>
+
+  <div class="quiz">
+    <div class="quiz-title">🧠 Quick Check — Module 3</div>
+    <div class="quiz-q">Who coined the term "Internet of Things" and in what year?</div>
+    <div class="quiz-options">
+      <button class="quiz-opt" onclick="checkQ(this,'wrong')">Tim Berners-Lee, 1991</button>
+      <button class="quiz-opt" onclick="checkQ(this,'wrong')">Linus Torvalds, 2000</button>
+      <button class="quiz-opt" onclick="checkQ(this,'correct')">Kevin Ashton, 1999</button>
+      <button class="quiz-opt" onclick="checkQ(this,'wrong')">Jeff Bezos, 2006</button>
+    </div>
+    <div class="quiz-feedback">Kevin Ashton coined "Internet of Things" in 1999 while working at Procter & Gamble to describe using RFID tags to connect physical objects to the internet for supply chain tracking.</div>
+  </div>
+
+  <div class="nav-bottom">
+    <button class="btn" onclick="go(1)">← Electronics</button>
+    <div class="progress-bar"><div class="progress-fill" style="width:25%"></div></div>
+    <span class="progress-text">3 / 12</span>
+    <button class="btn primary" onclick="go(3)">Next: IoT Architecture →</button>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════════════════════════ -->
+<!-- MODULE 4: IOT ARCHITECTURE -->
+<!-- ══════════════════════════════════════════════════════════════ -->
+<section class="module" id="m3">
+  <div class="breadcrumb">🏠 Home › <span>Module 4: IoT Architecture</span></div>
+  <div class="module-header">
+    <div class="module-icon" style="background:rgba(124,58,237,0.15);border:1px solid rgba(124,58,237,0.3)">🏗️</div>
+    <div class="module-meta">
+      <div class="module-label">Module 4 — Core IoT</div>
+      <div class="module-title">IoT System Architecture</div>
+      <div class="module-desc">The full stack — from physical sensors all the way up to dashboards and cloud analytics.</div>
+      <div class="module-tags">
+        <span class="tag tag-purple">architecture</span>
+        <span class="tag tag-teal">protocols</span>
+        <span class="tag tag-blue">~1 week</span>
+      </div>
+    </div>
+  </div>
+
+  <h2>The 4-Layer IoT Architecture</h2>
+  <p>Every IoT system — from a simple smart bulb to an industrial monitoring platform — follows this same layered structure:</p>
+
+  <div class="layer-stack">
+    <div class="layer" style="background:rgba(34,197,94,0.07)">
+      <span class="layer-num">4</span>
+      <span class="layer-name" style="color:#4ade80">📱 Application Layer</span>
+      <span class="layer-tech">Dashboard · Alerts · APIs</span>
+      <span class="layer-desc">The user-facing part: web dashboards, mobile apps, automated rules, business intelligence</span>
+    </div>
+    <div class="layer" style="background:rgba(79,142,247,0.07)">
+      <span class="layer-num">3</span>
+      <span class="layer-name" style="color:#7eb8ff">⚙️ Processing Layer</span>
+      <span class="layer-tech">Cloud · Edge · Database · ML</span>
+      <span class="layer-desc">Data is stored, filtered, analyzed. ML models detect anomalies. Rules trigger actions.</span>
+    </div>
+    <div class="layer" style="background:rgba(245,158,11,0.07)">
+      <span class="layer-num">2</span>
+      <span class="layer-name" style="color:#fcd34d">📶 Network Layer</span>
+      <span class="layer-tech">WiFi · LoRa · 4G · MQTT · HTTP</span>
+      <span class="layer-desc">Transmits sensor data from devices to the cloud or local gateway using various protocols</span>
+    </div>
+    <div class="layer">
+      <span class="layer-num">1</span>
+      <span class="layer-name">🌡️ Perception Layer</span>
+      <span class="layer-tech">Sensors · Actuators · MCU</span>
+      <span class="layer-desc">Physical sensors collect data (temp, humidity, GPS). Actuators respond (fan, relay, motor).</span>
+    </div>
+  </div>
+
+  <h2>Complete IoT Pipeline Visual</h2>
+  <div class="pipeline">
+    <div class="pipe-node"><span class="pn-icon">🌡️</span><span class="pn-label">Sensor</span><span class="pn-sub">DHT22, LDR, GPS</span></div>
+    <div class="pipe-arrow">→</div>
+    <div class="pipe-node"><span class="pn-icon">🔌</span><span class="pn-label">MCU</span><span class="pn-sub">Arduino / ESP32</span></div>
+    <div class="pipe-arrow">→</div>
+    <div class="pipe-node"><span class="pn-icon">📡</span><span class="pn-label">Gateway</span><span class="pn-sub">WiFi / LoRa</span></div>
+    <div class="pipe-arrow">→</div>
+    <div class="pipe-node"><span class="pn-icon">☁️</span><span class="pn-label">Cloud</span><span class="pn-sub">AWS / Azure</span></div>
+    <div class="pipe-arrow">→</div>
+    <div class="pipe-node"><span class="pn-icon">🗄️</span><span class="pn-label">Database</span><span class="pn-sub">InfluxDB / SQL</span></div>
+    <div class="pipe-arrow">→</div>
+    <div class="pipe-node"><span class="pn-icon">🤖</span><span class="pn-label">ML Model</span><span class="pn-sub">Anomaly detect</span></div>
+    <div class="pipe-arrow">→</div>
+    <div class="pipe-node"><span class="pn-icon">📊</span><span class="pn-label">Dashboard</span><span class="pn-sub">Grafana / Web</span></div>
+    <div class="pipe-arrow">→</div>
+    <div class="pipe-node"><span class="pn-icon">👤</span><span class="pn-label">User</span><span class="pn-sub">Alert / Action</span></div>
+  </div>
+
+  <h2>Cloud vs Edge Computing</h2>
+  <table class="term-table">
+    <tr><th></th><th>Cloud Computing</th><th>Edge Computing</th><th>Fog Computing</th></tr>
+    <tr><td>Where processed</td><td>Remote data center</td><td>On the device itself</td><td>Local gateway/server</td></tr>
+    <tr><td>Latency</td><td>100ms–1s</td><td>&lt;1ms</td><td>5–50ms</td></tr>
+    <tr><td>Internet needed</td><td>Always</td><td>Never</td><td>Sometimes</td></tr>
+    <tr><td>Cost</td><td>Subscription-based</td><td>No recurring cost</td><td>One-time hardware</td></tr>
+    <tr><td>Use case</td><td>Analytics, AI training, long-term storage</td><td>Real-time control, factory machines</td><td>Hospital networks, campus systems</td></tr>
+    <tr><td>Example</td><td>AWS IoT Core + S3</td><td>TensorFlow Lite on ESP32</td><td>Raspberry Pi local server</td></tr>
+  </table>
+
+  <h2>Key IoT Protocols — The Communication Stack</h2>
+  <div class="proto-grid">
+    <div class="proto-card">
+      <div class="proto-name">MQTT</div>
+      <div class="proto-range">🔁 Publish / Subscribe</div>
+      <div class="proto-desc">The #1 IoT messaging protocol. Devices <em>publish</em> to topics, servers <em>subscribe</em> to receive. Runs on TCP port 1883. Extremely lightweight — works on 8KB RAM devices.</div>
+    </div>
+    <div class="proto-card">
+      <div class="proto-name">HTTP / REST</div>
+      <div class="proto-range">📤 Request / Response</div>
+      <div class="proto-desc">Familiar web protocol. Device sends HTTP POST to a server API. Simple but heavier than MQTT. Good when data is sent infrequently (every few minutes).</div>
+    </div>
+    <div class="proto-card">
+      <div class="proto-name">WebSocket</div>
+      <div class="proto-range">⚡ Full-Duplex</div>
+      <div class="proto-desc">Persistent two-way connection between browser and server. Perfect for live dashboards — server pushes updates the moment new sensor data arrives.</div>
+    </div>
+    <div class="proto-card">
+      <div class="proto-name">CoAP</div>
+      <div class="proto-range">📦 Constrained</div>
+      <div class="proto-desc">Constrained Application Protocol. Like HTTP but runs over UDP. Designed for devices with no TCP stack. Used in NB-IoT sensors.</div>
+    </div>
+    <div class="proto-card">
+      <div class="proto-name">AMQP</div>
+      <div class="proto-range">🏭 Enterprise</div>
+      <div class="proto-desc">Advanced Message Queuing Protocol. Used in enterprise IoT (Azure Service Bus, RabbitMQ). Reliable delivery with acknowledgements.</div>
+    </div>
+    <div class="proto-card">
+      <div class="proto-name">OPC-UA</div>
+      <div class="proto-range">🏗️ Industrial</div>
+      <div class="proto-desc">Standard for industrial automation and IIoT (Industry 4.0). Used in factories — connects PLCs, robots, and CNC machines to cloud systems.</div>
+    </div>
+  </div>
+
+  <h2>MQTT Deep Dive</h2>
+  <p>MQTT is the backbone of modern IoT. Understanding it fully is essential. It works like a radio station — devices either broadcast (publish) or tune in (subscribe) to channels called <em>topics</em>.</p>
+
+  <div class="diagram">
+    <svg width="560" height="200" viewBox="0 0 560 200" xmlns="http://www.w3.org/2000/svg">
+      <!-- Broker center -->
+      <rect x="210" y="70" width="140" height="60" rx="10" fill="#232840" stroke="#4f8ef7" stroke-width="2"/>
+      <text x="280" y="97" fill="#7eb8ff" font-size="13" font-weight="bold" text-anchor="middle" font-family="Inter,sans-serif">MQTT Broker</text>
+      <text x="280" y="115" fill="#8a94aa" font-size="10" text-anchor="middle" font-family="JetBrains Mono,monospace">HiveMQ / Mosquitto</text>
+      <!-- Publisher (ESP32) -->
+      <rect x="20" y="80" width="110" height="50" rx="8" fill="#1c2030" stroke="#a6e3a1" stroke-width="1.5"/>
+      <text x="75" y="101" fill="#a6e3a1" font-size="12" text-anchor="middle" font-family="Inter,sans-serif">ESP32 Sensor</text>
+      <text x="75" y="118" fill="#585b70" font-size="10" text-anchor="middle" font-family="JetBrains Mono,monospace">PUBLISH</text>
+      <!-- Arrow pub -->
+      <line x1="132" y1="105" x2="208" y2="100" stroke="#a6e3a1" stroke-width="1.5" marker-end="url(#arr)"/>
+      <text x="165" y="94" fill="#a6e3a1" font-size="9" font-family="JetBrains Mono,monospace">natcom/room1/temp</text>
+      <!-- Subscriber 1 -->
+      <rect x="432" y="50" width="110" height="45" rx="8" fill="#1c2030" stroke="#89b4fa" stroke-width="1.5"/>
+      <text x="487" y="70" fill="#89b4fa" font-size="11" text-anchor="middle" font-family="Inter,sans-serif">Python Dashboard</text>
+      <text x="487" y="86" fill="#585b70" font-size="10" text-anchor="middle" font-family="JetBrains Mono,monospace">SUBSCRIBE</text>
+      <!-- Subscriber 2 -->
+      <rect x="432" y="110" width="110" height="45" rx="8" fill="#1c2030" stroke="#f9a8d4" stroke-width="1.5"/>
+      <text x="487" y="130" fill="#f9a8d4" font-size="11" text-anchor="middle" font-family="Inter,sans-serif">Mobile App</text>
+      <text x="487" y="146" fill="#585b70" font-size="10" text-anchor="middle" font-family="JetBrains Mono,monospace">SUBSCRIBE</text>
+      <!-- Arrows sub -->
+      <line x1="352" y1="93" x2="430" y2="73" stroke="#89b4fa" stroke-width="1.5" marker-end="url(#arr2)"/>
+      <line x1="352" y1="107" x2="430" y2="133" stroke="#f9a8d4" stroke-width="1.5" marker-end="url(#arr3)"/>
+      <!-- Arrowhead defs -->
+      <defs>
+        <marker id="arr" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L0,6 L8,3 z" fill="#a6e3a1"/></marker>
+        <marker id="arr2" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L0,6 L8,3 z" fill="#89b4fa"/></marker>
+        <marker id="arr3" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L0,6 L8,3 z" fill="#f9a8d4"/></marker>
+      </defs>
+    </svg>
+  </div>
+
+  <h3>MQTT Topic Structure</h3>
+  <div class="code-block">
+    <div class="code-header"><div class="code-lang"><span class="lang-dot" style="background:#89dceb"></span> MQTT Topics</div><span>topic design patterns</span></div>
+    <pre><span class="cmt"># Topic hierarchy uses / as separator (like file paths)</span>
+natcom/room1/temperature        <span class="cmt"># one specific room, one sensor</span>
+natcom/room1/humidity
+natcom/room1/motion
+
+natcom/+/temperature            <span class="cmt"># + wildcard: all rooms, temperature only</span>
+natcom/#                        <span class="cmt"># # wildcard: ALL topics under natcom/</span>
+
+<span class="cmt"># Best practice structure</span>
+{company}/{location}/{device_id}/{sensor_type}
+natcom/kigali/esp32-001/temp
+natcom/kigali/esp32-001/hum
+natcom/kigali/esp32-001/status   <span class="cmt"># online/offline heartbeat</span></pre>
+  </div>
+
+  <div class="nav-bottom">
+    <button class="btn" onclick="go(2)">← IoT Intro</button>
+    <div class="progress-bar"><div class="progress-fill" style="width:33%"></div></div>
+    <span class="progress-text">4 / 12</span>
+    <button class="btn primary" onclick="go(4)">Next: Sensors & Actuators →</button>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════════════════════════ -->
+<!-- MODULE 5: SENSORS & ACTUATORS -->
+<!-- ══════════════════════════════════════════════════════════════ -->
+<section class="module" id="m4">
+  <div class="breadcrumb">🏠 Home › <span>Module 5: Sensors & Actuators</span></div>
+  <div class="module-header">
+    <div class="module-icon" style="background:rgba(34,197,94,0.15);border:1px solid rgba(34,197,94,0.3)">🔬</div>
+    <div class="module-meta">
+      <div class="module-label">Module 5 — Core IoT</div>
+      <div class="module-title">Sensors & Actuators</div>
+      <div class="module-desc">The eyes, ears, and hands of every IoT system — how they work, how to wire them, how to read them.</div>
+      <div class="module-tags">
+        <span class="tag tag-green">hands-on</span>
+        <span class="tag tag-blue">wiring</span>
+        <span class="tag tag-amber">~2 weeks</span>
+      </div>
+    </div>
+  </div>
+
+  <h2>Sensors — Reading the Physical World</h2>
+  <div class="img-row">
+    <div class="img-card">
+      <div class="img-visual">🌡️</div>
+      <div class="img-info">
+        <div class="img-title">DHT22 — Temp + Humidity</div>
+        <div class="img-desc">Digital single-wire sensor. Reads −40°C to 80°C and 0–100% RH. More accurate than DHT11.</div>
+        <div class="img-spec">3 pins: VCC 3.3–5V · GND · DATA→any GPIO</div>
+      </div>
+    </div>
+    <div class="img-card">
+      <div class="img-visual">🌊</div>
+      <div class="img-info">
+        <div class="img-title">BMP280 — Pressure + Altitude</div>
+        <div class="img-desc">I²C/SPI sensor measures barometric pressure and temperature. Calculate altitude from pressure difference.</div>
+        <div class="img-spec">I²C: SDA + SCL · Addr: 0x76 or 0x77</div>
+      </div>
+    </div>
+    <div class="img-card">
+      <div class="img-visual">📏</div>
+      <div class="img-info">
+        <div class="img-title">HC-SR04 — Ultrasonic Distance</div>
+        <div class="img-desc">Emits 40kHz pulse, measures echo return time. Range: 2cm–400cm. Good for level detection.</div>
+        <div class="img-spec">TRIG→GPIO (output) · ECHO→GPIO (input)</div>
+      </div>
+    </div>
+    <div class="img-card">
+      <div class="img-visual">🚶</div>
+      <div class="img-info">
+        <div class="img-title">PIR HC-SR501 — Motion</div>
+        <div class="img-desc">Detects infrared radiation from warm bodies. Output goes HIGH for 3–300 seconds (adjustable). Covers ~120° angle.</div>
+        <div class="img-spec">VCC 5V · GND · OUT→GPIO digital</div>
+      </div>
+    </div>
+    <div class="img-card">
+      <div class="img-visual">💨</div>
+      <div class="img-info">
+        <div class="img-title">MQ-2 — Gas / Smoke</div>
+        <div class="img-desc">Detects LPG, propane, hydrogen, smoke. Analog output proportional to gas concentration. Needs 24h burn-in.</div>
+        <div class="img-spec">AOUT→analog pin · DOUT→digital threshold</div>
+      </div>
+    </div>
+    <div class="img-card">
+      <div class="img-visual">☀️</div>
+      <div class="img-info">
+        <div class="img-title">LDR — Light Level</div>
+        <div class="img-desc">Resistance decreases as light increases. Use in voltage divider with 10kΩ resistor. Map 0–1023 to 0–100% brightness.</div>
+        <div class="img-spec">Analog voltage divider → A0 pin</div>
+      </div>
+    </div>
+    <div class="img-card">
+      <div class="img-visual">🌿</div>
+      <div class="img-info">
+        <div class="img-title">Capacitive Soil Moisture</div>
+        <div class="img-desc">Measures soil water content using capacitance (not resistance like older resistive sensors — doesn't corrode). Essential for smart farming.</div>
+        <div class="img-spec">3.3–5V · Analog out 0–3.3V</div>
+      </div>
+    </div>
+    <div class="img-card">
+      <div class="img-visual">📍</div>
+      <div class="img-info">
+        <div class="img-title">Neo-6M GPS Module</div>
+        <div class="img-desc">Outputs NMEA sentences over UART (9600 baud). Parse with TinyGPS++ library. Gets fix in ~30s outdoors. Essential for asset tracking.</div>
+        <div class="img-spec">TX→RX of MCU · RX→TX of MCU · 3.3V</div>
+      </div>
+    </div>
+  </div>
+
+  <h2>Wiring Reference Table</h2>
+  <table class="pin-table">
+    <tr><th>Sensor</th><th>ESP32 Pin</th><th>Arduino Pin</th><th>Library & Code Start</th></tr>
+    <tr><td>DHT22 DATA</td><td>GPIO 4</td><td>D4</td><td><code>#include &lt;DHT.h&gt;</code> · DHT dht(4, DHT22);</td></tr>
+    <tr><td>BMP280 SDA</td><td>GPIO 21</td><td>A4</td><td><code>#include &lt;Adafruit_BMP280.h&gt;</code></td></tr>
+    <tr><td>BMP280 SCL</td><td>GPIO 22</td><td>A5</td><td>Wire.begin(); bmp.begin(0x76);</td></tr>
+    <tr><td>HC-SR04 TRIG</td><td>GPIO 5</td><td>D5</td><td>digitalWrite(TRIG, HIGH); delayMicroseconds(10);</td></tr>
+    <tr><td>HC-SR04 ECHO</td><td>GPIO 18</td><td>D6</td><td>long dur = pulseIn(ECHO, HIGH);</td></tr>
+    <tr><td>PIR OUT</td><td>GPIO 14</td><td>D2</td><td>digitalRead(PIR_PIN) == HIGH</td></tr>
+    <tr><td>MQ-2 AOUT</td><td>GPIO 34 (ADC)</td><td>A0</td><td>int gas = analogRead(MQ2_PIN);</td></tr>
+    <tr><td>GPS TX</td><td>GPIO 16 (RX2)</td><td>D10 (SoftSerial)</td><td>Serial2.begin(9600); TinyGPSPlus gps;</td></tr>
+  </table>
+
+  <h2>Reading Sensors — Code Examples</h2>
+
+  <h3>DHT22 — Temperature & Humidity</h3>
+  <div class="code-block">
+    <div class="code-header"><div class="code-lang"><span class="lang-dot" style="background:#89b4fa"></span> cpp / ESP32</div><span>dht22_read.ino</span></div>
+    <pre><span class="pp">#include</span> <span class="str">&lt;DHT.h&gt;</span>
+
+<span class="pp">#define</span> DHT_PIN  <span class="num">4</span>
+<span class="pp">#define</span> DHT_TYPE DHT22
+
+DHT dht(DHT_PIN, DHT_TYPE);
+
+<span class="kw">void</span> <span class="fn">setup</span>() {
+  <span class="fn">Serial.begin</span>(<span class="num">115200</span>);
+  dht.<span class="fn">begin</span>();
+}
+
+<span class="kw">void</span> <span class="fn">loop</span>() {
+  <span class="kw">float</span> temp = dht.<span class="fn">readTemperature</span>();   <span class="cmt">// °C</span>
+  <span class="kw">float</span> hum  = dht.<span class="fn">readHumidity</span>();      <span class="cmt">// %</span>
+  <span class="kw">float</span> heatIndex = dht.<span class="fn">computeHeatIndex</span>(temp, hum, <span class="kw">false</span>);
+
+  <span class="kw">if</span> (<span class="fn">isnan</span>(temp) || <span class="fn">isnan</span>(hum)) {
+    <span class="fn">Serial.println</span>(<span class="str">"ERROR: DHT22 read failed. Check wiring!"</span>);
+    <span class="kw">return</span>;
+  }
+
+  <span class="fn">Serial.printf</span>(<span class="str">"Temp: %.1f°C  Hum: %.1f%%  HeatIdx: %.1f°C\n"</span>,
+               temp, hum, heatIndex);
+  <span class="fn">delay</span>(<span class="num">2000</span>);
+}</pre>
+  </div>
+
+  <h3>HC-SR04 — Ultrasonic Distance</h3>
+  <div class="code-block">
+    <div class="code-header"><div class="code-lang"><span class="lang-dot" style="background:#89b4fa"></span> cpp</div><span>ultrasonic.ino</span></div>
+    <pre><span class="pp">#define</span> TRIG_PIN <span class="num">5</span>
+<span class="pp">#define</span> ECHO_PIN <span class="num">18</span>
+
+<span class="kw">float</span> <span class="fn">getDistance</span>() {
+  <span class="cmt">// Send 10μs pulse on TRIG</span>
+  <span class="fn">digitalWrite</span>(TRIG_PIN, <span class="op">LOW</span>);  <span class="fn">delayMicroseconds</span>(<span class="num">2</span>);
+  <span class="fn">digitalWrite</span>(TRIG_PIN, <span class="op">HIGH</span>); <span class="fn">delayMicroseconds</span>(<span class="num">10</span>);
+  <span class="fn">digitalWrite</span>(TRIG_PIN, <span class="op">LOW</span>);
+
+  <span class="cmt">// Measure echo duration</span>
+  <span class="kw">long</span> duration = <span class="fn">pulseIn</span>(ECHO_PIN, <span class="op">HIGH</span>, <span class="num">30000</span>); <span class="cmt">// 30ms timeout</span>
+
+  <span class="kw">if</span> (duration == <span class="num">0</span>) <span class="kw">return</span> -<span class="num">1</span>;  <span class="cmt">// timeout = out of range</span>
+
+  <span class="cmt">// Distance = (time × speed of sound) / 2</span>
+  <span class="cmt">// Speed of sound ≈ 0.0343 cm/μs</span>
+  <span class="kw">return</span> duration * <span class="num">0.0343</span> / <span class="num">2.0</span>;
+}
+
+<span class="kw">void</span> <span class="fn">loop</span>() {
+  <span class="kw">float</span> dist = <span class="fn">getDistance</span>();
+  <span class="kw">if</span> (dist > <span class="num">0</span>) {
+    <span class="fn">Serial.printf</span>(<span class="str">"Distance: %.1f cm\n"</span>, dist);
+    <span class="kw">if</span> (dist < <span class="num">20</span>) <span class="fn">Serial.println</span>(<span class="str">"⚠ Object too close!"</span>);
+  }
+  <span class="fn">delay</span>(<span class="num">500</span>);
+}</pre>
+  </div>
+
+  <h2>Actuators — Acting on the Physical World</h2>
+  <div class="img-row">
+    <div class="img-card">
+      <div class="img-visual">💡</div>
+      <div class="img-info"><div class="img-title">LED</div><div class="img-desc">Simplest output. Use 220Ω resistor. PWM for brightness control (analogWrite).</div><div class="img-spec">1.8–3.3V forward voltage · 20mA max</div></div>
+    </div>
+    <div class="img-card">
+      <div class="img-visual">🔊</div>
+      <div class="img-info"><div class="img-title">Buzzer (Active)</div><div class="img-desc">Beeps at fixed frequency when powered. Just digitalWrite HIGH. Passive buzzers need tone() with frequency.</div><div class="img-spec">5V · 30mA · uses transistor driver</div></div>
+    </div>
+    <div class="img-card">
+      <div class="img-visual">🔄</div>
+      <div class="img-info"><div class="img-title">Servo Motor</div><div class="img-desc">Rotates to precise angle (0°–180°). Controlled by PWM pulse width. Used for valves, door locks, camera gimbal.</div><div class="img-spec">SG90: 5V · 180° · Servo library</div></div>
+    </div>
+    <div class="img-card">
+      <div class="img-visual">🌀</div>
+      <div class="img-info"><div class="img-title">DC Motor + L298N</div><div class="img-desc">L298N H-bridge driver controls speed and direction of two DC motors. Needs external power supply for motor.</div><div class="img-spec">IN1 IN2 = direction · EN = PWM speed</div></div>
+    </div>
+    <div class="img-card">
+      <div class="img-visual">🔁</div>
+      <div class="img-info"><div class="img-title">Relay Module</div><div class="img-desc">Controls 220V AC from a 5V signal. Used for lights, fans, pumps. Always optoisolated for safety.</div><div class="img-spec">IN pin → GPIO · COM+NO = load</div></div>
+    </div>
+    <div class="img-card">
+      <div class="img-visual">📺</div>
+      <div class="img-info"><div class="img-title">OLED Display (SSD1306)</div><div class="img-desc">128×64 pixel I²C display. Show sensor data, status messages, charts. Uses Adafruit_SSD1306 library.</div><div class="img-spec">I²C: 0x3C · SDA+SCL · 3.3–5V</div></div>
+    </div>
+  </div>
+
+  <h3>Servo Motor Code</h3>
+  <div class="code-block">
+    <div class="code-header"><div class="code-lang"><span class="lang-dot" style="background:#89b4fa"></span> cpp</div><span>servo_control.ino</span></div>
+    <pre><span class="pp">#include</span> <span class="str">&lt;ESP32Servo.h&gt;</span>  <span class="cmt">// use Servo.h for Arduino</span>
+
+<span class="type">Servo</span> myServo;
+<span class="pp">#define</span> SERVO_PIN <span class="num">13</span>
+
+<span class="kw">void</span> <span class="fn">setup</span>() {
+  myServo.<span class="fn">attach</span>(SERVO_PIN);
+}
+
+<span class="kw">void</span> <span class="fn">loop</span>() {
+  <span class="cmt">// Sweep 0° to 180° and back</span>
+  <span class="kw">for</span> (<span class="kw">int</span> angle = <span class="num">0</span>; angle <= <span class="num">180</span>; angle += <span class="num">5</span>) {
+    myServo.<span class="fn">write</span>(angle);
+    <span class="fn">delay</span>(<span class="num">30</span>);
+  }
+  <span class="kw">for</span> (<span class="kw">int</span> angle = <span class="num">180</span>; angle >= <span class="num">0</span>; angle -= <span class="num">5</span>) {
+    myServo.<span class="fn">write</span>(angle);
+    <span class="fn">delay</span>(<span class="num">30</span>);
+  }
+  <span class="cmt">// Sensor-controlled: map temp 20–40°C to 0°–180°</span>
+  <span class="kw">float</span> temp   = dht.<span class="fn">readTemperature</span>();
+  <span class="kw">int</span>   target = <span class="fn">map</span>(temp, <span class="num">20</span>, <span class="num">40</span>, <span class="num">0</span>, <span class="num">180</span>);
+  myServo.<span class="fn">write</span>(<span class="fn">constrain</span>(target, <span class="num">0</span>, <span class="num">180</span>));
+}</pre>
+  </div>
+
+  <div class="nav-bottom">
+    <button class="btn" onclick="go(3)">← IoT Architecture</button>
+    <div class="progress-bar"><div class="progress-fill" style="width:41%"></div></div>
+    <span class="progress-text">5 / 12</span>
+    <button class="btn primary" onclick="go(5)">Next: Connectivity →</button>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════════════════════════ -->
+<!-- MODULE 6: CONNECTIVITY & PROTOCOLS -->
+<!-- ══════════════════════════════════════════════════════════════ -->
+<section class="module" id="m5">
+  <div class="breadcrumb">🏠 Home › <span>Module 6: Connectivity & Protocols</span></div>
+  <div class="module-header">
+    <div class="module-icon" style="background:rgba(6,182,212,0.15);border:1px solid rgba(6,182,212,0.3)">📶</div>
+    <div class="module-meta">
+      <div class="module-label">Module 6 — Core IoT</div>
+      <div class="module-title">Connectivity & Communication Protocols</div>
+      <div class="module-desc">WiFi, Bluetooth, LoRa, Zigbee, 4G, NB-IoT — choose the right radio for every situation.</div>
+      <div class="module-tags">
+        <span class="tag tag-cyan">wireless</span>
+        <span class="tag tag-teal">LoRa</span>
+        <span class="tag tag-blue">protocols</span>
+        <span class="tag tag-amber">~1 week</span>
+      </div>
+    </div>
+  </div>
+
+  <h2>Wireless Technologies at a Glance</h2>
+  <div class="proto-grid">
+    <div class="proto-card">
+      <div class="proto-name">WiFi 802.11</div>
+      <div class="proto-range">📏 10–100m range</div>
+      <div class="proto-freq">📡 2.4GHz / 5GHz</div>
+      <div class="proto-desc">High throughput (Mbps). Power-hungry — drains battery fast. Best for ESP32 devices near router. ESP32 only supports 2.4GHz.</div>
+    </div>
+    <div class="proto-card">
+      <div class="proto-name">Bluetooth LE (BLE)</div>
+      <div class="proto-range">📏 up to 100m</div>
+      <div class="proto-freq">📡 2.4GHz</div>
+      <div class="proto-desc">Very low power. Ideal for wearables and phone-connected devices. BLE 5.0 has 2× range and 2× speed vs BLE 4.2.</div>
+    </div>
+    <div class="proto-card">
+      <div class="proto-name">LoRa / LoRaWAN</div>
+      <div class="proto-range">📏 2–15 km</div>
+      <div class="proto-freq">📡 868MHz (EU) / 915MHz (US)</div>
+      <div class="proto-desc">Extremely long range, ultra-low power, very small data packets. Perfect for smart farming, livestock tracking, smart meters in Rwanda.</div>
+    </div>
+    <div class="proto-card">
+      <div class="proto-name">Zigbee</div>
+      <div class="proto-range">📏 10–100m (mesh)</div>
+      <div class="proto-freq">📡 2.4GHz</div>
+      <div class="proto-desc">Low-power mesh networking. Up to 65000 nodes per network. Used in smart home (Philips Hue, Ikea Tradfri, Amazon Sidewalk).</div>
+    </div>
+    <div class="proto-card">
+      <div class="proto-name">4G LTE / LTE-M</div>
+      <div class="proto-range">📏 nationwide</div>
+      <div class="proto-freq">📡 700–2600MHz</div>
+      <div class="proto-desc">Cellular network. MTN / Airtel SIM card. Good bandwidth. Used for GPS trackers, vending machines, ATMs. More expensive than LoRa.</div>
+    </div>
+    <div class="proto-card">
+      <div class="proto-name">NB-IoT</div>
+      <div class="proto-range">📏 nationwide</div>
+      <div class="proto-freq">📡 LTE bands</div>
+      <div class="proto-desc">Narrowband LTE. Designed for sensors that send small amounts of data once per hour. Battery can last 10 years. MTN is deploying in Rwanda.</div>
+    </div>
+    <div class="proto-card">
+      <div class="proto-name">Thread / Matter</div>
+      <div class="proto-range">📏 mesh 100m</div>
+      <div class="proto-freq">📡 2.4GHz</div>
+      <div class="proto-desc">New IEEE 802.15.4 mesh standard. Backed by Apple, Google, Amazon. The future of smart home interoperability.</div>
+    </div>
+    <div class="proto-card">
+      <div class="proto-name">Ethernet</div>
+      <div class="proto-range">📏 100m per cable</div>
+      <div class="proto-freq">📡 wired</div>
+      <div class="proto-desc">Wired reliability. Used in industrial IoT and server rooms where WiFi interference is a problem. W5500 module works with Arduino.</div>
+    </div>
+  </div>
+
+  <h2>Choosing the Right Protocol</h2>
+  <table class="term-table">
+    <tr><th>Scenario</th><th>Best Choice</th><th>Why</th></tr>
+    <tr><td>ESP32 sending data to local server every 10s</td><td>WiFi + MQTT</td><td>Fast, plug into existing network, free</td></tr>
+    <tr><td>Wearable heart rate monitor → phone</td><td>Bluetooth LE</td><td>Low power, phone is always the hub</td></tr>
+    <tr><td>Farm sensor 5km from city reporting hourly</td><td>LoRaWAN</td><td>Long range, battery powered, cheap data</td></tr>
+    <tr><td>Asset tracker in a vehicle nationwide</td><td>4G LTE</td><td>Must work everywhere, bandwidth available</td></tr>
+    <tr><td>Smart building with 200 devices</td><td>Zigbee mesh</td><td>Self-healing mesh, thousands of nodes</td></tr>
+    <tr><td>Water meter reporting once per day</td><td>NB-IoT</td><td>Ultra-low power, 10-year battery life</td></tr>
+    <tr><td>Factory robot needing &lt;1ms response</td><td>Wired Ethernet + OPC-UA</td><td>Deterministic timing, no packet loss</td></tr>
+  </table>
+
+  <h2>LoRaWAN Architecture</h2>
+  <p>LoRa is the physical radio layer. LoRaWAN is the network protocol on top. The Things Network (TTN) is a free public LoRaWAN network operating in many African cities including Kigali.</p>
+  <div class="pipeline">
+    <div class="pipe-node"><span class="pn-icon">📡</span><span class="pn-label">End Node</span><span class="pn-sub">ESP32 + SX1276</span></div>
+    <div class="pipe-arrow">⟶ LoRa ⟶</div>
+    <div class="pipe-node"><span class="pn-icon">🗼</span><span class="pn-label">LoRa Gateway</span><span class="pn-sub">RAK7268 or DIY</span></div>
+    <div class="pipe-arrow">⟶ TCP/IP ⟶</div>
+    <div class="pipe-node"><span class="pn-icon">🌐</span><span class="pn-label">Network Server</span><span class="pn-sub">TTN / ChirpStack</span></div>
+    <div class="pipe-arrow">⟶ MQTT ⟶</div>
+    <div class="pipe-node"><span class="pn-icon">☁️</span><span class="pn-label">App Server</span><span class="pn-sub">Your backend</span></div>
+    <div class="pipe-arrow">→</div>
+    <div class="pipe-node"><span class="pn-icon">📊</span><span class="pn-label">Dashboard</span><span class="pn-sub">Grafana / Web</span></div>
+  </div>
+
+  <h3>LoRa Send Example (Arduino + SX1276)</h3>
+  <div class="code-block">
+    <div class="code-header"><div class="code-lang"><span class="lang-dot" style="background:#89b4fa"></span> cpp</div><span>lora_sender.ino (using LoRa library)</span></div>
+    <pre><span class="pp">#include</span> <span class="str">&lt;SPI.h&gt;</span>
+<span class="pp">#include</span> <span class="str">&lt;LoRa.h&gt;</span>
+
+<span class="pp">#define</span> SCK    <span class="num">5</span>
+<span class="pp">#define</span> MISO   <span class="num">19</span>
+<span class="pp">#define</span> MOSI   <span class="num">27</span>
+<span class="pp">#define</span> SS     <span class="num">18</span>
+<span class="pp">#define</span> RST    <span class="num">14</span>
+<span class="pp">#define</span> DIO0   <span class="num">26</span>
+<span class="pp">#define</span> FREQ   <span class="num">868E6</span>  <span class="cmt">// 868 MHz for Europe/Africa</span>
+
+<span class="kw">void</span> <span class="fn">setup</span>() {
+  <span class="fn">Serial.begin</span>(<span class="num">115200</span>);
+  <span class="fn">SPI.begin</span>(SCK, MISO, MOSI, SS);
+  <span class="fn">LoRa.setPins</span>(SS, RST, DIO0);
+
+  <span class="kw">if</span> (!<span class="fn">LoRa.begin</span>(FREQ)) {
+    <span class="fn">Serial.println</span>(<span class="str">"LoRa init failed!"</span>);
+    <span class="kw">while</span> (<span class="kw">true</span>);
+  }
+  <span class="fn">Serial.println</span>(<span class="str">"LoRa ready"</span>);
+}
+
+<span class="kw">void</span> <span class="fn">loop</span>() {
+  <span class="kw">float</span> temp = dht.<span class="fn">readTemperature</span>();
+
+  <span class="fn">LoRa.beginPacket</span>();
+  <span class="fn">LoRa.print</span>(<span class="str">"T:"</span>);
+  <span class="fn">LoRa.print</span>(temp);          <span class="cmt">// Encode as compact string</span>
+  <span class="fn">LoRa.endPacket</span>();          <span class="cmt">// Sends over the air</span>
+
+  <span class="fn">Serial.printf</span>(<span class="str">"Sent: T:%.1f\n"</span>, temp);
+  <span class="fn">delay</span>(<span class="num">60000</span>);              <span class="cmt">// Every 60s — respect LoRa duty cycle</span>
+}</pre>
+  </div>
+
+  <div class="info-box warn">
+    <div class="title">⚠️ LoRa Duty Cycle Rules</div>
+    In most regions, LoRa devices must not transmit more than 1% of the time (1% duty cycle on 868MHz EU band). This means max ~36 seconds of transmission per hour. For 20-byte packets at SF7, you can send roughly 1 packet every 6 seconds. Design your payload accordingly — send only essential data, compressed.
+  </div>
+
+  <div class="nav-bottom">
+    <button class="btn" onclick="go(4)">← Sensors & Actuators</button>
+    <div class="progress-bar"><div class="progress-fill" style="width:50%"></div></div>
+    <span class="progress-text">6 / 12</span>
+    <button class="btn primary" onclick="go(6)">Next: Packet Tracer →</button>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════════════════════════ -->
+<!-- MODULE 7: CISCO PACKET TRACER -->
+<!-- ══════════════════════════════════════════════════════════════ -->
+<section class="module" id="m6">
+  <div class="breadcrumb">🏠 Home › <span>Module 7: Cisco Packet Tracer</span></div>
+  <div class="module-header">
+    <div class="module-icon" style="background:rgba(245,158,11,0.15);border:1px solid rgba(245,158,11,0.3)">🔧</div>
+    <div class="module-meta">
+      <div class="module-label">Module 7 — Simulation</div>
+      <div class="module-title">Cisco Packet Tracer — IoT Simulation</div>
+      <div class="module-desc">Simulate entire IoT networks with virtual sensors, actuators, gateways and cloud servers — before touching real hardware.</div>
+      <div class="module-tags">
+        <span class="tag tag-amber">free tool</span>
+        <span class="tag tag-green">no hardware needed</span>
+        <span class="tag tag-blue">~2 weeks</span>
+      </div>
+    </div>
+  </div>
+
+  <h2>What is Packet Tracer?</h2>
+  <p>Cisco Packet Tracer is a free network simulation tool originally designed for CCNA networking courses. Since version 7.0 it includes a full <strong>IoT module</strong> with programmable virtual sensors, actuators, microcontrollers, single-board computers (Raspberry Pi simulation), and cloud servers.</p>
+
+  <div class="img-row">
+    <div class="img-card">
+      <div class="img-visual">🖥️</div>
+      <div class="img-info">
+        <div class="img-title">Download Packet Tracer</div>
+        <div class="img-desc">Register at netacad.com → enroll in the free "Packet Tracer" course → download installer (Windows, Mac, Linux, Chromebook).</div>
+        <div class="img-spec">netacad.com — completely free</div>
+      </div>
+    </div>
+    <div class="img-card">
+      <div class="img-visual">🎮</div>
+      <div class="img-info">
+        <div class="img-title">IoT Category</div>
+        <div class="img-desc">In the device panel, click "End Devices" → select "Home" or "Smart City" tab to find IoT objects like thermostats, fans, smoke detectors, cameras.</div>
+        <div class="img-spec">Version 8.2+ recommended</div>
+      </div>
+    </div>
+    <div class="img-card">
+      <div class="img-visual">💻</div>
+      <div class="img-info">
+        <div class="img-title">Programming Devices</div>
+        <div class="img-desc">Each IoT device can run Python scripts or use a visual block editor to define automated behaviors based on sensor conditions.</div>
+        <div class="img-spec">Python 3 · Block editor</div>
+      </div>
+    </div>
+  </div>
+
+  <h2>Key Objects in Packet Tracer IoT</h2>
+  <table class="term-table">
+    <tr><th>PT Object</th><th>Real-world Equivalent</th><th>What it can do</th></tr>
+    <tr><td>Home Gateway</td><td>WiFi router + IoT hub</td><td>Connects all smart devices on same WiFi, runs registration server, provides DHCP</td></tr>
+    <tr><td>Registration Server</td><td>AWS IoT Core / MQTT broker</td><td>Registers all devices, stores state, allows remote control via web interface</td></tr>
+    <tr><td>SBC (Single Board Computer)</td><td>Raspberry Pi</td><td>Runs full Python programs, manages other devices, acts as edge server</td></tr>
+    <tr><td>MCU (Microcontroller)</td><td>Arduino / ESP32</td><td>Runs device-level Python/block code, reads sensors, controls actuators</td></tr>
+    <tr><td>Actuator: Fan</td><td>Cooling fan + relay</td><td>Can be turned on/off by conditions or MCU code</td></tr>
+    <tr><td>Actuator: Smart Door</td><td>Electronic door lock</td><td>Lock/unlock via conditions, code, or remote IoT server</td></tr>
+    <tr><td>Sensor: Thermometer</td><td>LM35 / DS18B20</td><td>Reports temperature. Adjustable in simulation mode.</td></tr>
+    <tr><td>Sensor: Smoke Detector</td><td>MQ-2 gas sensor</td><td>Triggers alerts when smoke level exceeds threshold</td></tr>
+    <tr><td>Sensor: Motion Sensor</td><td>PIR HC-SR501</td><td>Detects motion events</td></tr>
+    <tr><td>Sensor: Water Level</td><td>Capacitive level sensor</td><td>Monitors tank fill level for irrigation or flood detection</td></tr>
+  </table>
+
+  <h2>Project 1: Smart Classroom</h2>
+  <p>Build a classroom that automatically controls the AC, fan, and door based on temperature, CO₂, and motion. This covers the complete IoT loop: sense → decide → act.</p>
+
+  <ol class="steps">
+    <li>Open Packet Tracer → <strong>New</strong> → drag a <strong>Home Gateway</strong> to canvas</li>
+    <li>Add devices from End Devices panel: <strong>Thermometer</strong>, <strong>CO₂ Sensor</strong>, <strong>Fan</strong>, <strong>AC Unit</strong>, <strong>Smart Door</strong></li>
+    <li>Click <strong>Thermometer</strong> → Config tab → IoT Server → set SSID to match gateway</li>
+    <li>Repeat for all other devices — they all join the same WiFi network</li>
+    <li>Click <strong>Home Gateway</strong> → IoT Server tab → verify all 5 devices appear as registered</li>
+    <li>Click <strong>Fan</strong> → Programming tab → choose <strong>Python</strong> editor → enter the script below</li>
+    <li>Enter simulation mode → click Thermometer → raise temperature to 32°C → watch Fan turn on!</li>
+    <li>Raise CO₂ above 1000 ppm → watch AC kick in. Motion = false for 5min → door locks.</li>
+  </ol>
+
+  <div class="code-block">
+    <div class="code-header"><div class="code-lang"><span class="lang-dot" style="background:#a6e3a1"></span> python (Packet Tracer device)</div><span>smart_classroom.py</span></div>
+    <pre><span class="kw">import</span> PT_IoT   <span class="cmt"># Packet Tracer's built-in IoT library</span>
+<span class="kw">import</span> time
+
+<span class="cmt"># Get references to all devices on the network</span>
+therm  = PT_IoT.<span class="fn">get_device</span>(<span class="str">'Thermometer0'</span>)
+co2    = PT_IoT.<span class="fn">get_device</span>(<span class="str">'CO2Sensor0'</span>)
+fan    = PT_IoT.<span class="fn">get_device</span>(<span class="str">'Fan0'</span>)
+ac     = PT_IoT.<span class="fn">get_device</span>(<span class="str">'ACUnit0'</span>)
+door   = PT_IoT.<span class="fn">get_device</span>(<span class="str">'SmartDoor0'</span>)
+motion = PT_IoT.<span class="fn">get_device</span>(<span class="str">'MotionSensor0'</span>)
+
+motion_last_seen = <span class="num">0</span>
+LOCK_AFTER = <span class="num">300</span>  <span class="cmt"># lock after 5 min of no motion</span>
+
+<span class="kw">def</span> <span class="fn">main</span>():
+    <span class="kw">global</span> motion_last_seen
+    <span class="kw">while</span> <span class="kw">True</span>:
+        temp  = therm.<span class="fn">get_temperature</span>()
+        co2v  = co2.<span class="fn">get_value</span>()
+        moved = motion.<span class="fn">get_status</span>()
+
+        <span class="cmt"># Fan: on above 28°C</span>
+        <span class="kw">if</span> temp > <span class="num">28</span>:
+            fan.<span class="fn">on</span>()
+            PT_IoT.<span class="fn">log</span>(<span class="str">f"FAN ON — {temp:.1f}°C"</span>)
+        <span class="kw">else</span>:
+            fan.<span class="fn">off</span>()
+
+        <span class="cmt"># AC: on above 32°C or CO2 > 1000ppm</span>
+        <span class="kw">if</span> temp > <span class="num">32</span> <span class="kw">or</span> co2v > <span class="num">1000</span>:
+            ac.<span class="fn">on</span>()
+        <span class="kw">else</span>:
+            ac.<span class="fn">off</span>()
+
+        <span class="cmt"># Door: lock if no motion for 5 minutes</span>
+        <span class="kw">if</span> moved:
+            motion_last_seen = PT_IoT.<span class="fn">time</span>()
+            door.<span class="fn">unlock</span>()
+        <span class="kw">elif</span> PT_IoT.<span class="fn">time</span>() - motion_last_seen > LOCK_AFTER:
+            door.<span class="fn">lock</span>()
+            PT_IoT.<span class="fn">log</span>(<span class="str">"DOOR LOCKED — no motion for 5 min"</span>)
+
+        PT_IoT.<span class="fn">sleep</span>(<span class="num">1</span>)
+
+<span class="fn">main</span>()</pre>
+  </div>
+
+  <h2>Project 2: Smart Server Room</h2>
+  <p>Simulate a Natcom server room with temperature monitoring, fire detection, and remote access control. Add an email alert when temperature exceeds safe limits.</p>
+
+  <ol class="steps">
+    <li>Add: Thermometer × 3, Smoke Detector × 2, Fan × 2, Door Lock, Registration Server, SBC (Raspberry Pi)</li>
+    <li>Connect all devices to Home Gateway WiFi</li>
+    <li>On SBC, run the monitoring script below</li>
+    <li>Add a PC to the network. Open a browser, navigate to the Home Gateway IP → see the IoT dashboard</li>
+    <li>From the PC browser, manually turn fans on/off — observe in simulation</li>
+  </ol>
+
+  <div class="code-block">
+    <div class="code-header"><div class="code-lang"><span class="lang-dot" style="background:#a6e3a1"></span> python (SBC — Packet Tracer)</div><span>server_room_monitor.py</span></div>
+    <pre><span class="kw">import</span> PT_IoT
+
+sensors = [PT_IoT.<span class="fn">get_device</span>(<span class="str">f'Therm{i}'</span>) <span class="kw">for</span> i <span class="kw">in</span> <span class="fn">range</span>(<span class="num">3</span>)]
+fans    = [PT_IoT.<span class="fn">get_device</span>(<span class="str">f'Fan{i}'</span>)   <span class="kw">for</span> i <span class="kw">in</span> <span class="fn">range</span>(<span class="num">2</span>)]
+smoke   = [PT_IoT.<span class="fn">get_device</span>(<span class="str">f'Smoke{i}'</span>) <span class="kw">for</span> i <span class="kw">in</span> <span class="fn">range</span>(<span class="num">2</span>)]
+door    = PT_IoT.<span class="fn">get_device</span>(<span class="str">'Door0'</span>)
+
+TEMP_WARN  = <span class="num">26</span>   <span class="cmt"># °C — fan on</span>
+TEMP_CRIT  = <span class="num">30</span>   <span class="cmt"># °C — all fans + alert</span>
+
+<span class="kw">while</span> <span class="kw">True</span>:
+    temps = [s.<span class="fn">get_temperature</span>() <span class="kw">for</span> s <span class="kw">in</span> sensors]
+    max_t = <span class="fn">max</span>(temps)
+    fire  = <span class="fn">any</span>(s.<span class="fn">get_status</span>() <span class="kw">for</span> s <span class="kw">in</span> smoke)
+
+    PT_IoT.<span class="fn">log</span>(<span class="str">f"Temps: {temps} | Max: {max_t:.1f}°C | Fire: {fire}"</span>)
+
+    <span class="kw">if</span> fire:
+        <span class="kw">for</span> f <span class="kw">in</span> fans: f.<span class="fn">off</span>()   <span class="cmt"># shut fans during fire (don't spread smoke)</span>
+        door.<span class="fn">unlock</span>()              <span class="cmt"># emergency unlock for evacuation</span>
+        PT_IoT.<span class="fn">log</span>(<span class="str">"🔥 FIRE ALARM! Fans off, door unlocked"</span>)
+    <span class="kw">elif</span> max_t >= TEMP_CRIT:
+        <span class="kw">for</span> f <span class="kw">in</span> fans: f.<span class="fn">on</span>()
+        PT_IoT.<span class="fn">log</span>(<span class="str">f"CRITICAL TEMP {max_t:.1f}°C — All fans ON"</span>)
+    <span class="kw">elif</span> max_t >= TEMP_WARN:
+        fans[<span class="num">0</span>].<span class="fn">on</span>(); fans[<span class="num">1</span>].<span class="fn">off</span>()
+    <span class="kw">else</span>:
+        <span class="kw">for</span> f <span class="kw">in</span> fans: f.<span class="fn">off</span>()
+
+    PT_IoT.<span class="fn">sleep</span>(<span class="num">2</span>)</pre>
+  </div>
+
+  <h2>Project 3: Multi-Building Campus Network</h2>
+  <p>Simulate a campus with 3 buildings, each with its own Home Gateway, connected to a central Registration Server over a Cisco router.</p>
+
+  <ol class="steps">
+    <li>Add 3 Home Gateways (Building A, B, C) and 1 central Registration Server</li>
+    <li>Add a Cisco 2911 Router — connect each gateway to the router using copper cross-over cable</li>
+    <li>Configure router interfaces: 192.168.1.1, 192.168.2.1, 192.168.3.1</li>
+    <li>Configure each gateway with its matching subnet and set Registration Server IP</li>
+    <li>Add IoT devices to each building — they register to the central server</li>
+    <li>From any PC on any subnet, open the Registration Server web UI — see all 3 buildings</li>
+  </ol>
+
+  <div class="info-box do">
+    <div class="title">✅ Packet Tracer Project Ideas for Natcom Internship</div>
+    • Smart Classroom: CO₂ + Temp + Motion → Fan + AC + Door<br>
+    • Smart Server Room: Temp monitoring + Smoke alarm + Access control<br>
+    • Smart Farm: Soil moisture + weather → irrigation valve + alert<br>
+    • Smart City Block: Street lights (motion sensor) + Waste level + Flood sensor<br>
+    • Multi-site Campus: 3 buildings on different subnets, central dashboard
+  </div>
+
+  <div class="nav-bottom">
+    <button class="btn" onclick="go(5)">← Connectivity</button>
+    <div class="progress-bar"><div class="progress-fill" style="width:58%"></div></div>
+    <span class="progress-text">7 / 12</span>
+    <button class="btn primary" onclick="go(7)">Next: Arduino & ESP32 →</button>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════════════════════════ -->
+<!-- MODULE 8: ARDUINO & ESP32 -->
+<!-- ══════════════════════════════════════════════════════════════ -->
+<section class="module" id="m7">
+  <div class="breadcrumb">🏠 Home › <span>Module 8: Arduino & ESP32</span></div>
+  <div class="module-header">
+    <div class="module-icon" style="background:rgba(34,197,94,0.15);border:1px solid rgba(34,197,94,0.3)">🔌</div>
+    <div class="module-meta">
+      <div class="module-label">Module 8 — Hands-on</div>
+      <div class="module-title">Arduino & ESP32 — Real Hardware</div>
+      <div class="module-desc">Wire it up, flash it, watch real data flow. Build a complete WiFi-connected sensor node from scratch.</div>
+      <div class="module-tags">
+        <span class="tag tag-green">hands-on</span>
+        <span class="tag tag-blue">ESP32</span>
+        <span class="tag tag-amber">~3 weeks</span>
+        <span class="tag tag-purple">MQTT</span>
+      </div>
+    </div>
+  </div>
+
+  <h2>Arduino vs ESP32 — When to Use Which</h2>
+  <div class="img-row">
+    <div class="img-card">
+      <div class="img-visual">🤖</div>
+      <div class="img-info">
+        <div class="img-title">Arduino Uno / Nano</div>
+        <div class="img-desc">Best for learning C++ and basic sensor I/O. Simple, rugged, 5V tolerant. No WiFi/BLE built-in. Huge library ecosystem.</div>
+        <div class="img-spec">ATmega328P · 16MHz · 2KB RAM · 32KB Flash</div>
+      </div>
+    </div>
+    <div class="img-card">
+      <div class="img-visual">📶</div>
+      <div class="img-info">
+        <div class="img-title">ESP32 DevKit</div>
+        <div class="img-desc">The workhorse of IoT. Dual-core 240MHz, WiFi+BLE built-in, 12-bit ADC, touch pins, hall sensor, hardware encryption. 3.3V only.</div>
+        <div class="img-spec">Xtensa LX6 · 240MHz · 520KB RAM · 4MB Flash</div>
+      </div>
+    </div>
+    <div class="img-card">
+      <div class="img-visual">🧪</div>
+      <div class="img-info">
+        <div class="img-title">ESP8266 / NodeMCU</div>
+        <div class="img-desc">Cheaper alternative to ESP32. WiFi only (no BLE), single core 80MHz. Good for simple WiFi projects with one sensor.</div>
+        <div class="img-spec">Tensilica LX106 · 80MHz · 80KB RAM</div>
+      </div>
+    </div>
+    <div class="img-card">
+      <div class="img-visual">🍓</div>
+      <div class="img-info">
+        <div class="img-title">Raspberry Pi 4</div>
+        <div class="img-desc">Full Linux computer. Use as the gateway/server in your IoT system. Runs Python, Node.js, databases, MQTT broker. Not for battery-powered nodes.</div>
+        <div class="img-spec">Cortex-A72 · 1.8GHz · 4GB RAM · Raspbian OS</div>
+      </div>
+    </div>
+  </div>
+
+  <h2>ESP32 Pinout Reference</h2>
+  <table class="pin-table">
+    <tr><th>Pin Group</th><th>Pins</th><th>Function</th><th>Notes</th></tr>
+    <tr><td>Digital I/O</td><td>GPIO 0–39</td><td>Input / Output</td><td>GPIO 6-11 used internally — avoid. Input only: 34,35,36,39</td></tr>
+    <tr><td>ADC (Analog)</td><td>GPIO 32–39, 0,2,4,12–15,25–27</td><td>Analog read (0–4095)</td><td>ADC2 (GPIO 0,2,4,12-15,25-27) unavailable when WiFi is on!</td></tr>
+    <tr><td>DAC (Analog out)</td><td>GPIO 25, 26</td><td>True analog output (0–3.3V)</td><td>Use for audio, variable voltage</td></tr>
+    <tr><td>PWM</td><td>Any output GPIO</td><td>ledcWrite — 16 channels</td><td>ledcSetup(ch, freq, res); ledcAttachPin(pin, ch);</td></tr>
+    <tr><td>I²C</td><td>SDA=21, SCL=22</td><td>I²C bus (default)</td><td>Can be remapped. Wire.begin(SDA, SCL);</td></tr>
+    <tr><td>SPI</td><td>MOSI=23 MISO=19 SCK=18 SS=5</td><td>SPI bus (default VSPI)</td><td>Up to 80MHz. HSPI: MOSI=13 MISO=12 SCK=14 SS=15</td></tr>
+    <tr><td>UART0</td><td>TX=1, RX=3</td><td>USB Serial (Serial)</td><td>Used for programming. Avoid in sketches.</td></tr>
+    <tr><td>UART2</td><td>TX=17, RX=16</td><td>Serial2</td><td>Free for GPS, GSM modules</td></tr>
+    <tr><td>Touch</td><td>GPIO 0,2,4,12-15,27,32,33</td><td>Capacitive touch</td><td>touchRead(pin) returns 0 when touched</td></tr>
+    <tr><td>Power</td><td>3.3V, GND, Vin (5V USB)</td><td>Power supply</td><td>ALL GPIO pins are 3.3V only — never apply 5V!</td></tr>
+  </table>
+
+  <h2>Full Project: Smart Room Monitor</h2>
+  <p>A complete end-to-end IoT project. The ESP32 reads temperature, humidity, and motion every 10 seconds, formats a JSON payload, and publishes it to an MQTT broker accessible from anywhere in the world.</p>
+
+  <div class="info-box note">
+    <div class="title">🛒 Parts List (~$15–25 USD)</div>
+    ESP32 DevKit × 1 &nbsp;·&nbsp; DHT22 × 1 &nbsp;·&nbsp; PIR HC-SR501 × 1 &nbsp;·&nbsp; 10kΩ resistor × 2 &nbsp;·&nbsp; 830-tie breadboard × 1 &nbsp;·&nbsp; Jumper wires (M-M) × 20 &nbsp;·&nbsp; USB cable (ESP32 type) × 1
+  </div>
+
+  <h3>Step 1 — Wiring Diagram</h3>
+  <div class="diagram">
+    <svg width="500" height="260" viewBox="0 0 500 260" xmlns="http://www.w3.org/2000/svg">
+      <!-- ESP32 board representation -->
+      <rect x="170" y="30" width="160" height="200" rx="10" fill="#1c2030" stroke="#4f8ef7" stroke-width="2"/>
+      <text x="250" y="55" fill="#7eb8ff" font-size="14" font-weight="bold" text-anchor="middle" font-family="Inter,sans-serif">ESP32</text>
+      <!-- Pin labels right side -->
+      <text x="332" y="95" fill="#8a94aa" font-size="10" font-family="JetBrains Mono,monospace">GPIO4</text>
+      <text x="332" y="115" fill="#8a94aa" font-size="10" font-family="JetBrains Mono,monospace">GPIO14</text>
+      <text x="332" y="135" fill="#8a94aa" font-size="10" font-family="JetBrains Mono,monospace">3.3V</text>
+      <text x="332" y="155" fill="#8a94aa" font-size="10" font-family="JetBrains Mono,monospace">5V(Vin)</text>
+      <text x="332" y="175" fill="#8a94aa" font-size="10" font-family="JetBrains Mono,monospace">GND</text>
+      <!-- DHT22 -->
+      <rect x="400" y="70" width="80" height="60" rx="6" fill="#232840" stroke="#a6e3a1" stroke-width="1.5"/>
+      <text x="440" y="98" fill="#a6e3a1" font-size="12" text-anchor="middle" font-family="Inter,sans-serif">DHT22</text>
+      <text x="440" y="116" fill="#585b70" font-size="9" text-anchor="middle" font-family="JetBrains Mono,monospace">Temp+Hum</text>
+      <!-- Wire GPIO4 → DHT22 -->
+      <line x1="332" y1="92" x2="398" y2="92" stroke="#a6e3a1" stroke-width="1.5" stroke-dasharray="4,2"/>
+      <!-- PIR -->
+      <rect x="400" y="155" width="80" height="55" rx="6" fill="#232840" stroke="#f9a8d4" stroke-width="1.5"/>
+      <text x="440" y="180" fill="#f9a8d4" font-size="12" text-anchor="middle" font-family="Inter,sans-serif">PIR</text>
+      <text x="440" y="198" fill="#585b70" font-size="9" text-anchor="middle" font-family="JetBrains Mono,monospace">HC-SR501</text>
+      <!-- Wire GPIO14 → PIR -->
+      <line x1="332" y1="112" x2="398" y2="175" stroke="#f9a8d4" stroke-width="1.5" stroke-dasharray="4,2"/>
+      <!-- Power labels -->
+      <text x="150" y="92" fill="#ef4444" font-size="9" text-anchor="end" font-family="JetBrains Mono,monospace">3.3V→DHT VCC</text>
+      <text x="150" y="108" fill="#ef4444" font-size="9" text-anchor="end" font-family="JetBrains Mono,monospace">5V→PIR VCC</text>
+      <text x="150" y="124" fill="#3b82f6" font-size="9" text-anchor="end" font-family="JetBrains Mono,monospace">GND→both GND</text>
+      <text x="250" y="250" fill="#585b70" font-size="9" text-anchor="middle" font-family="Inter,sans-serif">10kΩ pull-up between DHT DATA and 3.3V</text>
+    </svg>
+  </div>
+
+  <h3>Step 2 — Full Sketch</h3>
+  <div class="code-block">
+    <div class="code-header"><div class="code-lang"><span class="lang-dot" style="background:#89b4fa"></span> cpp / ESP32</div><span>smart_room.ino — Complete project</span></div>
+    <pre><span class="pp">#include</span> <span class="str">&lt;WiFi.h&gt;</span>
+<span class="pp">#include</span> <span class="str">&lt;PubSubClient.h&gt;</span>
+<span class="pp">#include</span> <span class="str">&lt;DHT.h&gt;</span>
+<span class="pp">#include</span> <span class="str">&lt;ArduinoJson.h&gt;</span>
+
+<span class="cmt">// ── Configuration ─────────────────────────────────────</span>
+<span class="pp">#define</span> WIFI_SSID   <span class="str">"YourWiFiName"</span>
+<span class="pp">#define</span> WIFI_PASS   <span class="str">"YourWiFiPassword"</span>
+<span class="pp">#define</span> MQTT_BROKER <span class="str">"broker.hivemq.com"</span>
+<span class="pp">#define</span> MQTT_PORT    <span class="num">1883</span>
+<span class="pp">#define</span> MQTT_TOPIC   <span class="str">"natcom/room1/sensors"</span>
+<span class="pp">#define</span> CLIENT_ID    <span class="str">"natcom-esp32-001"</span>
+
+<span class="pp">#define</span> DHT_PIN      <span class="num">4</span>
+<span class="pp">#define</span> PIR_PIN      <span class="num">14</span>
+<span class="pp">#define</span> LED_PIN      <span class="num">2</span>    <span class="cmt">// built-in LED</span>
+<span class="pp">#define</span> INTERVAL_MS  <span class="num">10000</span>  <span class="cmt">// send every 10 seconds</span>
+
+DHT dht(DHT_PIN, DHT22);
+WiFiClient   wifiClient;
+PubSubClient mqtt(wifiClient);
+
+<span class="kw">unsigned long</span> lastSend = <span class="num">0</span>;
+
+<span class="cmt">// ── WiFi connect ──────────────────────────────────────</span>
+<span class="kw">void</span> <span class="fn">connectWiFi</span>() {
+  <span class="fn">Serial.print</span>(<span class="str">"Connecting to WiFi"</span>);
+  WiFi.<span class="fn">begin</span>(WIFI_SSID, WIFI_PASS);
+  <span class="kw">while</span> (WiFi.<span class="fn">status</span>() != WL_CONNECTED) {
+    <span class="fn">delay</span>(<span class="num">500</span>); <span class="fn">Serial.print</span>(<span class="str">"."</span>);
+  }
+  <span class="fn">Serial.printf</span>(<span class="str">"\n✓ WiFi connected. IP: %s\n"</span>,
+               WiFi.<span class="fn">localIP</span>().<span class="fn">toString</span>().c_str());
+}
+
+<span class="cmt">// ── MQTT connect ──────────────────────────────────────</span>
+<span class="kw">void</span> <span class="fn">connectMQTT</span>() {
+  <span class="kw">while</span> (!mqtt.<span class="fn">connected</span>()) {
+    <span class="fn">Serial.print</span>(<span class="str">"Connecting MQTT..."</span>);
+    <span class="kw">if</span> (mqtt.<span class="fn">connect</span>(CLIENT_ID)) {
+      <span class="fn">Serial.println</span>(<span class="str">"connected!"</span>);
+      mqtt.<span class="fn">subscribe</span>(<span class="str">"natcom/room1/cmd"</span>);  <span class="cmt">// listen for commands</span>
+    } <span class="kw">else</span> {
+      <span class="fn">Serial.printf</span>(<span class="str">"failed rc=%d — retry in 5s\n"</span>, mqtt.<span class="fn">state</span>());
+      <span class="fn">delay</span>(<span class="num">5000</span>);
+    }
+  }
+}
+
+<span class="cmt">// ── Handle incoming commands ──────────────────────────</span>
+<span class="kw">void</span> <span class="fn">onMessage</span>(<span class="kw">char</span>* topic, <span class="kw">byte</span>* payload, <span class="kw">unsigned int</span> len) {
+  <span class="type">String</span> msg;
+  <span class="kw">for</span> (<span class="kw">int</span> i = <span class="num">0</span>; i < len; i++) msg += (<span class="kw">char</span>)payload[i];
+  <span class="fn">Serial.printf</span>(<span class="str">"CMD [%s]: %s\n"</span>, topic, msg.c_str());
+  <span class="kw">if</span> (msg == <span class="str">"blink"</span>) {
+    <span class="kw">for</span> (<span class="kw">int</span> i = <span class="num">0</span>; i < <span class="num">5</span>; i++) {
+      <span class="fn">digitalWrite</span>(LED_PIN, !<span class="fn">digitalRead</span>(LED_PIN)); <span class="fn">delay</span>(<span class="num">200</span>);
+    }
+  }
+}
+
+<span class="kw">void</span> <span class="fn">setup</span>() {
+  <span class="fn">Serial.begin</span>(<span class="num">115200</span>);
+  <span class="fn">pinMode</span>(PIR_PIN, <span class="op">INPUT</span>);
+  <span class="fn">pinMode</span>(LED_PIN, <span class="op">OUTPUT</span>);
+  dht.<span class="fn">begin</span>();
+  <span class="fn">connectWiFi</span>();
+  mqtt.<span class="fn">setServer</span>(MQTT_BROKER, MQTT_PORT);
+  mqtt.<span class="fn">setCallback</span>(onMessage);
+}
+
+<span class="kw">void</span> <span class="fn">loop</span>() {
+  <span class="kw">if</span> (!mqtt.<span class="fn">connected</span>()) <span class="fn">connectMQTT</span>();
+  mqtt.<span class="fn">loop</span>();
+
+  <span class="kw">if</span> (<span class="fn">millis</span>() - lastSend >= INTERVAL_MS) {
+    lastSend = <span class="fn">millis</span>();
+
+    <span class="kw">float</span> temp   = dht.<span class="fn">readTemperature</span>();
+    <span class="kw">float</span> hum    = dht.<span class="fn">readHumidity</span>();
+    <span class="kw">bool</span>  motion = <span class="fn">digitalRead</span>(PIR_PIN);
+
+    <span class="kw">if</span> (<span class="fn">isnan</span>(temp)) { <span class="fn">Serial.println</span>(<span class="str">"DHT read error"</span>); <span class="kw">return</span>; }
+
+    <span class="cmt">// Build JSON: {"temp":24.5,"hum":62.0,"motion":false,"rssi":-68}</span>
+    StaticJsonDocument&lt;<span class="num">128</span>&gt; doc;
+    doc[<span class="str">"temp"</span>]   = <span class="fn">round</span>(temp * <span class="num">10</span>) / <span class="num">10.0</span>;
+    doc[<span class="str">"hum"</span>]    = <span class="fn">round</span>(hum  * <span class="num">10</span>) / <span class="num">10.0</span>;
+    doc[<span class="str">"motion"</span>] = motion;
+    doc[<span class="str">"rssi"</span>]   = WiFi.<span class="fn">RSSI</span>();   <span class="cmt">// signal strength</span>
+
+    <span class="kw">char</span> buf[<span class="num">128</span>];
+    <span class="fn">serializeJson</span>(doc, buf);
+
+    <span class="kw">bool</span> ok = mqtt.<span class="fn">publish</span>(MQTT_TOPIC, buf);
+    <span class="fn">Serial.printf</span>(<span class="str">"%s %s\n"</span>, buf, ok ? <span class="str">"✓"</span> : <span class="str">"FAIL"</span>);
+
+    <span class="cmt">// Flash LED to confirm send</span>
+    <span class="fn">digitalWrite</span>(LED_PIN, <span class="op">HIGH</span>); <span class="fn">delay</span>(<span class="num">50</span>); <span class="fn">digitalWrite</span>(LED_PIN, <span class="op">LOW</span>);
+  }
+}</pre>
+  </div>
+
+  <h2>Troubleshooting Guide</h2>
+  <table class="term-table">
+    <tr><th>Problem</th><th>Likely Cause</th><th>Fix</th></tr>
+    <tr><td>DHT22 reads <code>nan</code></td><td>Missing 10kΩ pull-up resistor</td><td>Add 10kΩ between DATA and 3.3V</td></tr>
+    <tr><td>WiFi won't connect</td><td>Wrong SSID/password, or 5GHz only network</td><td>ESP32 only supports 2.4GHz. Check credentials exactly (case-sensitive)</td></tr>
+    <tr><td>MQTT publish fails</td><td>No internet or wrong broker</td><td>Try broker.emqx.io as alternative. Check port 1883 not blocked</td></tr>
+    <tr><td>Sketch won't upload</td><td>Wrong board or COM port</td><td>Tools → Board → ESP32 Dev Module. Tools → Port → correct COM port. Hold BOOT button while uploading</td></tr>
+    <tr><td>ADC gives wrong readings</td><td>WiFi on + using ADC2 pins</td><td>Use ADC1 pins only (GPIO 32-39) when WiFi is active</td></tr>
+    <tr><td>MQTT disconnects every few minutes</td><td>Broker timeout, no keepalive</td><td>Call <code>mqtt.loop()</code> every iteration. Set <code>mqtt.setKeepAlive(60)</code></td></tr>
+    <tr><td>Device resets randomly</td><td>Brownout from power issues</td><td>Add 100µF capacitor between 3.3V and GND. Use powered USB hub</td></tr>
+  </table>
+
+  <div class="nav-bottom">
+    <button class="btn" onclick="go(6)">← Packet Tracer</button>
+    <div class="progress-bar"><div class="progress-fill" style="width:66%"></div></div>
+    <span class="progress-text">8 / 12</span>
+    <button class="btn primary" onclick="go(8)">Next: Python for IoT →</button>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════════════════════════ -->
+<!-- MODULE 9: PYTHON FOR IOT -->
+<!-- ══════════════════════════════════════════════════════════════ -->
+<section class="module" id="m8">
+  <div class="breadcrumb">🏠 Home › <span>Module 9: Python for IoT</span></div>
+  <div class="module-header">
+    <div class="module-icon" style="background:rgba(34,197,94,0.15);border:1px solid rgba(34,197,94,0.3)">🐍</div>
+    <div class="module-meta">
+      <div class="module-label">Module 9 — Software</div>
+      <div class="module-title">Python for IoT — Data, APIs & ML</div>
+      <div class="module-desc">Python is the glue layer of every IoT system. It receives sensor data, stores it, analyzes it, and builds the dashboard.</div>
+      <div class="module-tags">
+        <span class="tag tag-green">Python 3</span>
+        <span class="tag tag-blue">Flask</span>
+        <span class="tag tag-purple">scikit-learn</span>
+        <span class="tag tag-amber">~3 weeks</span>
+      </div>
+    </div>
+  </div>
+
+  <h2>Python IoT Stack</h2>
+  <div class="pipeline">
+    <div class="pipe-node"><span class="pn-icon">📨</span><span class="pn-label">MQTT</span><span class="pn-sub">paho-mqtt</span></div>
+    <div class="pipe-arrow">→</div>
+    <div class="pipe-node"><span class="pn-icon">🗄️</span><span class="pn-label">Storage</span><span class="pn-sub">SQLite/CSV</span></div>
+    <div class="pipe-arrow">→</div>
+    <div class="pipe-node"><span class="pn-icon">🤖</span><span class="pn-label">ML</span><span class="pn-sub">scikit-learn</span></div>
+    <div class="pipe-arrow">→</div>
+    <div class="pipe-node"><span class="pn-icon">🌐</span><span class="pn-label">Web API</span><span class="pn-sub">Flask</span></div>
+    <div class="pipe-arrow">→</div>
+    <div class="pipe-node"><span class="pn-icon">⚡</span><span class="pn-label">Live Push</span><span class="pn-sub">SocketIO</span></div>
+  </div>
+
+  <div class="info-box warn">
+    <div class="title">📦 Install all dependencies first</div>
+    <code>pip install paho-mqtt flask flask-socketio scikit-learn pandas numpy matplotlib</code>
+  </div>
+
+  <h2>1 · Receiving MQTT Data</h2>
+  <div class="code-block">
+    <div class="code-header"><div class="code-lang"><span class="lang-dot" style="background:#a6e3a1"></span> python</div><span>mqtt_subscriber.py</span></div>
+    <pre><span class="kw">import</span> paho.mqtt.client <span class="kw">as</span> mqtt
+<span class="kw">import</span> json
+<span class="kw">from</span> datetime <span class="kw">import</span> datetime
+
+BROKER = <span class="str">"broker.hivemq.com"</span>
+TOPIC  = <span class="str">"natcom/room1/sensors"</span>
+
+<span class="kw">def</span> <span class="fn">on_connect</span>(client, userdata, flags, rc):
+    <span class="fn">print</span>(<span class="str">f"Connected to broker (rc={rc})"</span>)
+    client.<span class="fn">subscribe</span>(TOPIC)
+
+<span class="kw">def</span> <span class="fn">on_message</span>(client, userdata, msg):
+    <span class="kw">try</span>:
+        data = json.<span class="fn">loads</span>(msg.payload.<span class="fn">decode</span>())
+        ts   = datetime.<span class="fn">now</span>().<span class="fn">strftime</span>(<span class="str">"%H:%M:%S"</span>)
+        <span class="fn">print</span>(<span class="str">f"[{ts}] 🌡 {data['temp']}°C  💧{data['hum']}%  "</span>
+              <span class="str">f"🚶{'YES' if data['motion'] else 'no'}  "</span>
+              <span class="str">f"📶{data.get('rssi','?')}dBm"</span>)
+    <span class="kw">except</span> json.JSONDecodeError:
+        <span class="fn">print</span>(<span class="str">f"Bad payload: {msg.payload}"</span>)
+
+client = mqtt.<span class="fn">Client</span>(<span class="str">"natcom-python-001"</span>)
+client.on_connect = on_connect
+client.on_message = on_message
+client.<span class="fn">connect</span>(BROKER, <span class="num">1883</span>, keepalive=<span class="num">60</span>)
+<span class="fn">print</span>(<span class="str">"Listening... Press Ctrl+C to stop"</span>)
+client.<span class="fn">loop_forever</span>()</pre>
+  </div>
+
+  <h2>2 · Storing Data in SQLite</h2>
+  <div class="code-block">
+    <div class="code-header"><div class="code-lang"><span class="lang-dot" style="background:#a6e3a1"></span> python</div><span>data_store.py</span></div>
+    <pre><span class="kw">import</span> sqlite3
+<span class="kw">import</span> paho.mqtt.client <span class="kw">as</span> mqtt
+<span class="kw">import</span> json, time
+
+<span class="cmt"># ── Setup database ────────────────────────────────────</span>
+conn = sqlite3.<span class="fn">connect</span>(<span class="str">'natcom_iot.db'</span>, check_same_thread=<span class="kw">False</span>)
+conn.<span class="fn">execute</span>(<span class="str">"""
+  CREATE TABLE IF NOT EXISTS readings (
+    id        INTEGER PRIMARY KEY AUTOINCREMENT,
+    timestamp REAL    NOT NULL,
+    room      TEXT    NOT NULL,
+    temp      REAL,
+    humidity  REAL,
+    motion    INTEGER
+  )
+"""</span>)
+conn.<span class="fn">commit</span>()
+
+<span class="kw">def</span> <span class="fn">save_reading</span>(room, temp, hum, motion):
+    conn.<span class="fn">execute</span>(<span class="str">"""
+        INSERT INTO readings(timestamp, room, temp, humidity, motion)
+        VALUES (?, ?, ?, ?, ?)
+    """</span>, (time.<span class="fn">time</span>(), room, temp, hum, int(motion)))
+    conn.<span class="fn">commit</span>()
+
+<span class="kw">def</span> <span class="fn">on_message</span>(client, userdata, msg):
+    data = json.<span class="fn">loads</span>(msg.payload)
+    <span class="fn">save_reading</span>(<span class="str">"room1"</span>, data[<span class="str">"temp"</span>], data[<span class="str">"hum"</span>], data[<span class="str">"motion"</span>])
+    <span class="fn">print</span>(<span class="str">f"Saved: temp={data['temp']} hum={data['hum']}"</span>)
+
+client = mqtt.<span class="fn">Client</span>()
+client.on_message = on_message
+client.<span class="fn">connect</span>(<span class="str">"broker.hivemq.com"</span>, <span class="num">1883</span>)
+client.<span class="fn">subscribe</span>(<span class="str">"natcom/room1/sensors"</span>)
+client.<span class="fn">loop_forever</span>()</pre>
+  </div>
+
+  <h2>3 · Data Analysis with Pandas</h2>
+  <div class="code-block">
+    <div class="code-header"><div class="code-lang"><span class="lang-dot" style="background:#a6e3a1"></span> python</div><span>analysis.py</span></div>
+    <pre"><span class="kw">import</span> pandas <span class="kw">as</span> pd
+<span class="kw">import</span> sqlite3, matplotlib.pyplot <span class="kw">as</span> plt
+
+conn = sqlite3.<span class="fn">connect</span>(<span class="str">'natcom_iot.db'</span>)
+df   = pd.<span class="fn">read_sql</span>(<span class="str">"SELECT * FROM readings ORDER BY timestamp"</span>, conn)
+df[<span class="str">'time'</span>] = pd.<span class="fn">to_datetime</span>(df[<span class="str">'timestamp'</span>], unit=<span class="str">'s'</span>)
+
+<span class="cmt"># Basic statistics</span>
+<span class="fn">print</span>(df[[<span class="str">'temp'</span>, <span class="str">'humidity'</span>]].<span class="fn">describe</span>())
+
+<span class="cmt"># Count motion events per hour</span>
+df.<span class="fn">set_index</span>(<span class="str">'time'</span>, inplace=<span class="kw">True</span>)
+hourly_motion = df[<span class="str">'motion'</span>].<span class="fn">resample</span>(<span class="str">'1H'</span>).<span class="fn">sum</span>()
+<span class="fn">print</span>(<span class="str">"\nMotion events per hour:"</span>)
+<span class="fn">print</span>(hourly_motion)
+
+<span class="cmt"># Plot temperature over time</span>
+plt.<span class="fn">figure</span>(figsize=(<span class="num">12</span>, <span class="num">4</span>))
+plt.<span class="fn">plot</span>(df.index, df[<span class="str">'temp'</span>], color=<span class="str">'#89b4fa'</span>, linewidth=<span class="num">1.5</span>)
+plt.<span class="fn">axhline</span>(<span class="num">28</span>, color=<span class="str">'#f38ba8'</span>, linestyle=<span class="str">'--'</span>, label=<span class="str">'Threshold 28°C'</span>)
+plt.<span class="fn">title</span>(<span class="str">'Room 1 Temperature'</span>); plt.<span class="fn">ylabel</span>(<span class="str">'°C'</span>); plt.<span class="fn">legend</span>()
+plt.<span class="fn">tight_layout</span>(); plt.<span class="fn">savefig</span>(<span class="str">'temperature_plot.png'</span>)
+<span class="fn">print</span>(<span class="str">"\nPlot saved to temperature_plot.png"</span>)</pre>
+  </div>
+
+  <h2>4 · ML: Anomaly Detection</h2>
+  <div class="code-block">
+    <div class="code-header"><div class="code-lang"><span class="lang-dot" style="background:#a6e3a1"></span> python</div><span>anomaly_detection.py</span></div>
+    <pre><span class="kw">from</span> sklearn.ensemble <span class="kw">import</span> IsolationForest
+<span class="kw">from</span> sklearn.preprocessing <span class="kw">import</span> StandardScaler
+<span class="kw">import</span> pandas <span class="kw">as</span> pd
+<span class="kw">import</span> sqlite3
+
+conn = sqlite3.<span class="fn">connect</span>(<span class="str">'natcom_iot.db'</span>)
+df   = pd.<span class="fn">read_sql</span>(<span class="str">"SELECT temp, humidity FROM readings"</span>, conn)
+
+<span class="cmt"># Normalize features</span>
+scaler = <span class="fn">StandardScaler</span>()
+X_scaled = scaler.<span class="fn">fit_transform</span>(df)
+
+<span class="cmt"># Train Isolation Forest — contamination = expected % anomalies</span>
+model = <span class="fn">IsolationForest</span>(contamination=<span class="num">0.05</span>, random_state=<span class="num">42</span>)
+model.<span class="fn">fit</span>(X_scaled)
+
+df[<span class="str">'anomaly'</span>] = model.<span class="fn">predict</span>(X_scaled)
+anomalies    = df[df[<span class="str">'anomaly'</span>] == -<span class="num">1</span>]
+
+<span class="fn">print</span>(<span class="str">f"Total readings: {len(df)}"</span>)
+<span class="fn">print</span>(<span class="str">f"Anomalies found: {len(anomalies)}"</span>)
+<span class="fn">print</span>(<span class="str">"\nAnomaly readings:"</span>)
+<span class="fn">print</span>(anomalies)
+
+<span class="cmt"># Real-time prediction on new sensor reading</span>
+<span class="kw">def</span> <span class="fn">is_anomaly</span>(temp, hum):
+    sample = scaler.<span class="fn">transform</span>([[temp, hum]])
+    pred   = model.<span class="fn">predict</span>(sample)[<span class="num">0</span>]
+    <span class="kw">return</span> pred == -<span class="num">1</span>
+
+<span class="fn">print</span>(<span class="fn">is_anomaly</span>(<span class="num">24.5</span>, <span class="num">62.0</span>))   <span class="cmt"># → False (normal)</span>
+<span class="fn">print</span>(<span class="fn">is_anomaly</span>(<span class="num">55.0</span>, <span class="num">99.0</span>))   <span class="cmt"># → True  (anomaly)</span></pre>
+  </div>
+
+  <h2>5 · ML: Comfort Level Classifier</h2>
+  <div class="code-block">
+    <div class="code-header"><div class="code-lang"><span class="lang-dot" style="background:#a6e3a1"></span> python</div><span>comfort_classifier.py</span></div>
+    <pre><span class="kw">from</span> sklearn.tree <span class="kw">import</span> DecisionTreeClassifier
+<span class="kw">from</span> sklearn.model_selection <span class="kw">import</span> train_test_split
+<span class="kw">from</span> sklearn.metrics <span class="kw">import</span> accuracy_score
+<span class="kw">import</span> numpy <span class="kw">as</span> np
+<span class="kw">import</span> pickle
+
+<span class="cmt"># Training data: [temp °C, humidity %] → comfort label</span>
+X = np.<span class="fn">array</span>([
+    [<span class="num">14</span>,<span class="num">35</span>],[<span class="num">16</span>,<span class="num">40</span>],[<span class="num">18</span>,<span class="num">45</span>],[<span class="num">20</span>,<span class="num">50</span>],[<span class="num">22</span>,<span class="num">55</span>],
+    [<span class="num">24</span>,<span class="num">60</span>],[<span class="num">26</span>,<span class="num">60</span>],[<span class="num">28</span>,<span class="num">65</span>],[<span class="num">30</span>,<span class="num">70</span>],[<span class="num">32</span>,<span class="num">75</span>],
+    [<span class="num">34</span>,<span class="num">80</span>],[<span class="num">36</span>,<span class="num">85</span>],[<span class="num">38</span>,<span class="num">90</span>]
+])
+y = [<span class="str">'Cold'</span>,<span class="str">'Cold'</span>,<span class="str">'Cool'</span>,<span class="str">'Comfortable'</span>,<span class="str">'Comfortable'</span>,
+     <span class="str">'Comfortable'</span>,<span class="str">'Comfortable'</span>,<span class="str">'Warm'</span>,<span class="str">'Warm'</span>,
+     <span class="str">'Hot'</span>,<span class="str">'Hot'</span>,<span class="str">'VeryHot'</span>,<span class="str">'VeryHot'</span>]
+
+X_train, X_test, y_train, y_test = <span class="fn">train_test_split</span>(X, y, test_size=<span class="num">0.2</span>)
+model = <span class="fn">DecisionTreeClassifier</span>(max_depth=<span class="num">5</span>)
+model.<span class="fn">fit</span>(X_train, y_train)
+
+acc = <span class="fn">accuracy_score</span>(y_test, model.<span class="fn">predict</span>(X_test))
+<span class="fn">print</span>(<span class="str">f"Model accuracy: {acc*100:.1f}%"</span>)
+
+<span class="cmt"># Save model to disk</span>
+<span class="kw">with</span> <span class="fn">open</span>(<span class="str">'comfort_model.pkl'</span>, <span class="str">'wb'</span>) <span class="kw">as</span> f:
+    pickle.<span class="fn">dump</span>(model, f)
+
+<span class="cmt"># Load and use in production</span>
+<span class="kw">with</span> <span class="fn">open</span>(<span class="str">'comfort_model.pkl'</span>, <span class="str">'rb'</span>) <span class="kw">as</span> f:
+    clf = pickle.<span class="fn">load</span>(f)
+
+result = clf.<span class="fn">predict</span>([[<span class="num">27</span>, <span class="num">65</span>]])[<span class="num">0</span>]
+<span class="fn">print</span>(<span class="str">f"27°C 65%RH → {result}"</span>)   <span class="cmt"># → "Warm"</span></pre>
+  </div>
+
+  <div class="nav-bottom">
+    <button class="btn" onclick="go(7)">← Arduino & ESP32</button>
+    <div class="progress-bar"><div class="progress-fill" style="width:75%"></div></div>
+    <span class="progress-text">9 / 12</span>
+    <button class="btn primary" onclick="go(9)">Next: Cloud & Dashboards →</button>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════════════════════════ -->
+<!-- MODULE 10: CLOUD & DASHBOARDS -->
+<!-- ══════════════════════════════════════════════════════════════ -->
+<section class="module" id="m9">
+  <div class="breadcrumb">🏠 Home › <span>Module 10: Cloud & Dashboards</span></div>
+  <div class="module-header">
+    <div class="module-icon" style="background:rgba(79,142,247,0.15);border:1px solid rgba(79,142,247,0.3)">☁️</div>
+    <div class="module-meta">
+      <div class="module-label">Module 10 — Cloud</div>
+      <div class="module-title">Cloud Platforms & Live Dashboards</div>
+      <div class="module-desc">Host your IoT backend in the cloud and build a live web dashboard that updates in real time using WebSockets.</div>
+      <div class="module-tags">
+        <span class="tag tag-blue">Flask</span>
+        <span class="tag tag-teal">WebSocket</span>
+        <span class="tag tag-purple">Grafana</span>
+        <span class="tag tag-amber">~2 weeks</span>
+      </div>
+    </div>
+  </div>
+
+  <h2>Cloud IoT Platforms</h2>
+  <table class="term-table">
+    <tr><th>Platform</th><th>Free Tier</th><th>Best For</th><th>Notes</th></tr>
+    <tr><td>AWS IoT Core</td><td>Free 12 months then pay-per-use</td><td>Production, large scale</td><td>Industry standard. Rules engine, shadow docs, Greengrass edge</td></tr>
+    <tr><td>Azure IoT Hub</td><td>Free tier: 8000 msg/day</td><td>Enterprise, Microsoft stack</td><td>Best integration with Azure ML and Power BI</td></tr>
+    <tr><td>Google Cloud IoT</td><td>Free 30GB/month</td><td>AI/ML heavy workloads</td><td>Pubsub + BigQuery + Vertex AI pipeline</td></tr>
+    <tr><td>ThingsBoard</td><td>Fully free open source</td><td>Self-hosted dashboards</td><td>Best visual dashboard builder for IoT. Can host on Raspberry Pi</td></tr>
+    <tr><td>Adafruit IO</td><td>Free 30 data/min</td><td>Students, makers</td><td>Very easy setup. MQTT + HTTP + dashboard built-in</td></tr>
+    <tr><td>HiveMQ Cloud</td><td>Free MQTT broker</td><td>Public MQTT testing</td><td>Use for development — not production (messages are public!)</td></tr>
+    <tr><td>Railway / Render</td><td>Free tier available</td><td>Deploy Flask/Python apps</td><td>Deploy your Flask IoT backend for free in minutes</td></tr>
+  </table>
+
+  <h2>Building a Live Dashboard</h2>
+  <p>This Flask + Socket.IO server receives MQTT messages from your ESP32 and instantly pushes them to all connected browser clients. No page refresh needed — data flows in real time.</p>
+
+  <h3>server.py — Flask + Socket.IO + MQTT</h3>
+  <div class="code-block">
+    <div class="code-header"><div class="code-lang"><span class="lang-dot" style="background:#a6e3a1"></span> python</div><span>server.py</span></div>
+    <pre><span class="kw">from</span> flask <span class="kw">import</span> Flask, render_template, jsonify
+<span class="kw">from</span> flask_socketio <span class="kw">import</span> SocketIO
+<span class="kw">import</span> paho.mqtt.client <span class="kw">as</span> mqtt_client
+<span class="kw">import</span> json, threading, sqlite3, time
+
+app = <span class="fn">Flask</span>(__name__)
+sio = <span class="fn">SocketIO</span>(app, cors_allowed_origins=<span class="str">"*"</span>)
+
+<span class="cmt"># ── In-memory cache of last 100 readings ──────────────</span>
+readings = []
+
+<span class="kw">def</span> <span class="fn">on_mqtt_message</span>(client, userdata, msg):
+    <span class="kw">try</span>:
+        data = json.<span class="fn">loads</span>(msg.payload)
+        data[<span class="str">'time'</span>] = time.<span class="fn">strftime</span>(<span class="str">"%H:%M:%S"</span>)
+        readings.<span class="fn">append</span>(data)
+        <span class="kw">if</span> <span class="fn">len</span>(readings) > <span class="num">100</span>: readings.<span class="fn">pop</span>(<span class="num">0</span>)
+        <span class="cmt"># Push to ALL connected browsers instantly!</span>
+        sio.<span class="fn">emit</span>(<span class="str">'sensor_update'</span>, data)
+    <span class="kw">except</span>: <span class="kw">pass</span>
+
+<span class="kw">def</span> <span class="fn">start_mqtt</span>():
+    c = mqtt_client.<span class="fn">Client</span>(<span class="str">"natcom-server"</span>)
+    c.on_message = on_mqtt_message
+    c.<span class="fn">connect</span>(<span class="str">"broker.hivemq.com"</span>, <span class="num">1883</span>)
+    c.<span class="fn">subscribe</span>(<span class="str">"natcom/#"</span>)  <span class="cmt"># subscribe to all natcom topics</span>
+    c.<span class="fn">loop_forever</span>()
+
+<span class="op">@</span>app.<span class="fn">route</span>(<span class="str">'/'</span>)
+<span class="kw">def</span> <span class="fn">index</span>():
+    <span class="kw">return</span> <span class="fn">render_template</span>(<span class="str">'dashboard.html'</span>)
+
+<span class="op">@</span>app.<span class="fn">route</span>(<span class="str">'/api/history'</span>)
+<span class="kw">def</span> <span class="fn">history</span>():
+    <span class="kw">return</span> <span class="fn">jsonify</span>(readings[-<span class="num">50</span>:])
+
+<span class="cmt"># Start MQTT listener in background thread</span>
+threading.<span class="fn">Thread</span>(target=start_mqtt, daemon=<span class="kw">True</span>).<span class="fn">start</span>()
+
+<span class="kw">if</span> __name__ == <span class="str">'__main__'</span>:
+    sio.<span class="fn">run</span>(app, host=<span class="str">'0.0.0.0'</span>, port=<span class="num">5000</span>, debug=<span class="kw">True</span>)</pre>
+  </div>
+
+  <h3>templates/dashboard.html — Live Chart Dashboard</h3>
+  <div class="code-block">
+    <div class="code-header"><div class="code-lang"><span class="lang-dot" style="background:#fab387"></span> html + javascript</div><span>templates/dashboard.html</span></div>
+    <pre>&lt;!DOCTYPE html&gt;
+&lt;html&gt;
+&lt;head&gt;
+  &lt;title&gt;Natcom IoT Dashboard&lt;/title&gt;
+  &lt;script src="https://cdn.socket.io/4.x/socket.io.min.js"&gt;&lt;/script&gt;
+  &lt;script src="https://cdn.jsdelivr.net/npm/chart.js"&gt;&lt;/script&gt;
+  &lt;style&gt;
+    body { font-family: sans-serif; background: #0d1117; color: #e8ecf4; padding: 2rem; }
+    .cards { display: flex; gap: 1rem; margin-bottom: 2rem; }
+    .card  { background: #1c2030; border-radius: 12px; padding: 1.5rem 2rem; flex: 1; }
+    .card .val { font-size: 2.5rem; font-weight: 700; color: #4f8ef7; }
+    .card .lbl { font-size: 12px; color: #8a94aa; text-transform: uppercase; }
+    canvas { background: #1c2030; border-radius: 12px; padding: 1rem; }
+  &lt;/style&gt;
+&lt;/head&gt;
+&lt;body&gt;
+  &lt;h1&gt;🌐 Natcom Smart Room — Live&lt;/h1&gt;
+  &lt;div class="cards"&gt;
+    &lt;div class="card"&gt;&lt;div class="val" id="temp"&gt;--&lt;/div&gt;&lt;div class="lbl"&gt;Temperature °C&lt;/div&gt;&lt;/div&gt;
+    &lt;div class="card"&gt;&lt;div class="val" id="hum"&gt;--&lt;/div&gt;&lt;div class="lbl"&gt;Humidity %&lt;/div&gt;&lt;/div&gt;
+    &lt;div class="card"&gt;&lt;div class="val" id="motion"&gt;--&lt;/div&gt;&lt;div class="lbl"&gt;Motion&lt;/div&gt;&lt;/div&gt;
+    &lt;div class="card"&gt;&lt;div class="val" id="rssi"&gt;--&lt;/div&gt;&lt;div class="lbl"&gt;WiFi Signal dBm&lt;/div&gt;&lt;/div&gt;
+  &lt;/div&gt;
+  &lt;canvas id="chart" height="80"&gt;&lt;/canvas&gt;
+
+  &lt;script&gt;
+    const ctx   = document.getElementById('chart').getContext('2d');
+    const chart = new Chart(ctx, {
+      type: 'line',
+      data: {
+        labels: [],
+        datasets: [
+          { label: 'Temperature °C', data: [], borderColor: '#4f8ef7', tension: 0.4, yAxisID: 'y' },
+          { label: 'Humidity %',     data: [], borderColor: '#22c55e', tension: 0.4, yAxisID: 'y1' }
+        ]
+      },
+      options: {
+        responsive: true,
+        scales: {
+          y:  { type: 'linear', position: 'left',  title: { display: true, text: '°C', color: '#8a94aa' } },
+          y1: { type: 'linear', position: 'right', title: { display: true, text: '%',  color: '#8a94aa' }, grid: { drawOnChartArea: false } }
+        },
+        plugins: { legend: { labels: { color: '#e8ecf4' } } }
+      }
+    });
+
+    const MAX_POINTS = 30;
+
+    const socket = io();
+    socket.on('sensor_update', data =&gt; {
+      document.getElementById('temp').textContent   = data.temp + '°C';
+      document.getElementById('hum').textContent    = data.hum  + '%';
+      document.getElementById('motion').textContent = data.motion ? '🚶 YES' : 'Still';
+      document.getElementById('rssi').textContent   = (data.rssi || '--') + ' dBm';
+
+      chart.data.labels.push(data.time);
+      chart.data.datasets[0].data.push(data.temp);
+      chart.data.datasets[1].data.push(data.hum);
+      if (chart.data.labels.length &gt; MAX_POINTS) {
+        chart.data.labels.shift();
+        chart.data.datasets.forEach(d =&gt; d.data.shift());
+      }
+      chart.update('none');
+    });
+  &lt;/script&gt;
+&lt;/body&gt;
+&lt;/html&gt;</pre>
+  </div>
+
+  <h2>Grafana — Professional IoT Dashboard</h2>
+  <p>For production deployments, Grafana + InfluxDB is the industry standard for IoT time-series dashboards.</p>
+  <div class="code-block">
+    <div class="code-header"><div class="code-lang"><span class="lang-dot" style="background:#a6e3a1"></span> python</div><span>influxdb_writer.py</span></div>
+    <pre><span class="kw">from</span> influxdb_client <span class="kw">import</span> InfluxDBClient, Point
+<span class="kw">from</span> influxdb_client.client.write_api <span class="kw">import</span> SYNCHRONOUS
+<span class="kw">import</span> json, paho.mqtt.client <span class="kw">as</span> mqtt
+
+INFLUX_URL   = <span class="str">"http://localhost:8086"</span>
+INFLUX_TOKEN = <span class="str">"your-token"</span>
+INFLUX_ORG   = <span class="str">"natcom"</span>
+INFLUX_BKET  = <span class="str">"iot-data"</span>
+
+influx = <span class="fn">InfluxDBClient</span>(url=INFLUX_URL, token=INFLUX_TOKEN, org=INFLUX_ORG)
+writer = influx.<span class="fn">write_api</span>(write_options=SYNCHRONOUS)
+
+<span class="kw">def</span> <span class="fn">on_message</span>(client, userdata, msg):
+    data = json.<span class="fn">loads</span>(msg.payload)
+    point = (<span class="fn">Point</span>(<span class="str">"room_sensor"</span>)
+             .<span class="fn">tag</span>(<span class="str">"room"</span>, <span class="str">"room1"</span>)
+             .<span class="fn">field</span>(<span class="str">"temperature"</span>, data[<span class="str">"temp"</span>])
+             .<span class="fn">field</span>(<span class="str">"humidity"</span>,    data[<span class="str">"hum"</span>])
+             .<span class="fn">field</span>(<span class="str">"motion"</span>,      int(data[<span class="str">"motion"</span>])))
+    writer.<span class="fn">write</span>(INFLUX_BKET, INFLUX_ORG, point)
+    <span class="fn">print</span>(<span class="str">f"Written to InfluxDB: {data}"</span>)</pre>
+  </div>
+
+  <div class="nav-bottom">
+    <button class="btn" onclick="go(8)">← Python for IoT</button>
+    <div class="progress-bar"><div class="progress-fill" style="width:83%"></div></div>
+    <span class="progress-text">10 / 12</span>
+    <button class="btn primary" onclick="go(10)">Next: IoT Security →</button>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════════════════════════ -->
+<!-- MODULE 11: IOT SECURITY -->
+<!-- ══════════════════════════════════════════════════════════════ -->
+<section class="module" id="m10">
+  <div class="breadcrumb">🏠 Home › <span>Module 11: IoT Security</span></div>
+  <div class="module-header">
+    <div class="module-icon" style="background:rgba(239,68,68,0.15);border:1px solid rgba(239,68,68,0.3)">🔐</div>
+    <div class="module-meta">
+      <div class="module-label">Module 11 — Advanced</div>
+      <div class="module-title">IoT Security — Protecting Your Devices</div>
+      <div class="module-desc">IoT devices are the #1 hacked entry point in modern networks. Learn to secure firmware, communications, and cloud endpoints from real attacks.</div>
+      <div class="module-tags">
+        <span class="tag tag-red">critical</span>
+        <span class="tag tag-amber">TLS/SSL</span>
+        <span class="tag tag-blue">encryption</span>
+        <span class="tag tag-purple">~1 week</span>
+      </div>
+    </div>
+  </div>
+
+  <h2>Why IoT Security Matters</h2>
+  <div class="highlight-grid">
+    <div class="highlight-card"><div class="hc-num">57%</div><div class="hc-label">of IoT devices</div><div class="hc-desc">are vulnerable to medium or high severity attacks (Palo Alto Networks)</div></div>
+    <div class="highlight-card"><div class="hc-num">98%</div><div class="hc-label">of IoT traffic</div><div class="hc-desc">is unencrypted — visible to anyone on the same network</div></div>
+    <div class="highlight-card"><div class="hc-num">2016</div><div class="hc-label">Mirai Botnet</div><div class="hc-desc">100,000 insecure cameras + routers knocked Twitter, Netflix, Spotify offline</div></div>
+    <div class="highlight-card"><div class="hc-num">15 sec</div><div class="hc-label">Time to hack</div><div class="hc-desc">An ESP32 with default credentials gets brute-forced in under 15 seconds on a public network</div></div>
+  </div>
+
+  <div class="info-box danger">
+    <div class="title">🚨 The Most Common IoT Security Mistakes</div>
+    • Hardcoding WiFi passwords and API keys directly in firmware source code<br>
+    • Using unencrypted MQTT (port 1883) — anyone on the network can read all your sensor data<br>
+    • Never updating device firmware — old vulnerabilities stay open forever<br>
+    • Using the same password for all devices — one compromise = all compromised<br>
+    • Leaving debug Serial output enabled in production — leaks internal state
+  </div>
+
+  <h2>The IoT Security Threat Model</h2>
+  <table class="term-table">
+    <tr><th>Attack Vector</th><th>What Happens</th><th>Real Example</th></tr>
+    <tr><td>Default Credentials</td><td>Attacker logs in with admin/admin or root/root</td><td>Mirai botnet scanned the internet for Telnet with default passwords</td></tr>
+    <tr><td>Unencrypted MQTT</td><td>Attacker on same WiFi reads all data, injects fake commands</td><td>Smart home devices on open MQTT — toggle anyone's lights or unlock doors</td></tr>
+    <tr><td>Insecure OTA Update</td><td>Attacker intercepts firmware update, replaces with malicious code</td><td>IP cameras updated with spyware via unverified HTTP download</td></tr>
+    <tr><td>Physical Access</td><td>Attacker extracts flash memory, reads firmware and credentials</td><td>Reading WiFi password from ESP32 flash with esptool</td></tr>
+    <tr><td>Replay Attack</td><td>Attacker captures a valid "unlock door" MQTT message and replays it later</td><td>Garage door openers without rolling codes</td></tr>
+    <tr><td>DNS Hijacking</td><td>Attacker redirects device's cloud connection to a fake server</td><td>Home routers with custom DNS pointing IoT traffic to attacker server</td></tr>
+  </table>
+
+  <h2>Layer 1 — Secure the Device</h2>
+  <h3>Never Hardcode Credentials</h3>
+  <div class="code-block">
+    <div class="code-header"><div class="code-lang"><span class="lang-dot" style="background:#f38ba8"></span> cpp — BAD</div><span>❌ insecure.ino</span></div>
+    <pre><span class="cmt">// ❌ NEVER DO THIS — credentials visible in source code and Git history</span>
+<span class="pp">#define</span> WIFI_SSID  <span class="str">"NatcomOffice"</span>
+<span class="pp">#define</span> WIFI_PASS  <span class="str">"mypassword123"</span>
+<span class="pp">#define</span> API_KEY    <span class="str">"sk-1234abcd5678efgh"</span></pre>
+  </div>
+  <div class="code-block">
+    <div class="code-header"><div class="code-lang"><span class="lang-dot" style="background:#a6e3a1"></span> cpp — GOOD</div><span>✅ secure_config.ino — NVS storage</span></div>
+    <pre><span class="pp">#include</span> <span class="str">&lt;Preferences.h&gt;</span>
+<span class="type">Preferences</span> prefs;
+
+<span class="kw">void</span> <span class="fn">saveCredentials</span>(<span class="type">String</span> ssid, <span class="type">String</span> pass) {
+  prefs.<span class="fn">begin</span>(<span class="str">"wifi"</span>, <span class="kw">false</span>);
+  prefs.<span class="fn">putString</span>(<span class="str">"ssid"</span>, ssid);
+  prefs.<span class="fn">putString</span>(<span class="str">"pass"</span>, pass);
+  prefs.<span class="fn">end</span>();
+}
+
+<span class="type">String</span> <span class="fn">loadSSID</span>() {
+  prefs.<span class="fn">begin</span>(<span class="str">"wifi"</span>, <span class="kw">true</span>);
+  <span class="type">String</span> s = prefs.<span class="fn">getString</span>(<span class="str">"ssid"</span>, <span class="str">""</span>);
+  prefs.<span class="fn">end</span>();
+  <span class="kw">return</span> s;
+}
+<span class="cmt">// First boot: provision via BLE or Serial, save to NVS, never hardcode again</span></pre>
+  </div>
+
+  <h3>Strip Debug Output in Production</h3>
+  <div class="code-block">
+    <div class="code-header"><div class="code-lang"><span class="lang-dot" style="background:#89b4fa"></span> cpp</div><span>debug_guard.ino</span></div>
+    <pre><span class="pp">#define</span> DEBUG 0   <span class="cmt">// Set to 0 before flashing production devices</span>
+
+<span class="pp">#if</span> DEBUG
+  <span class="pp">#define</span> LOG(x)        Serial.println(x)
+  <span class="pp">#define</span> LOGF(f, ...)  Serial.printf(f, __VA_ARGS__)
+<span class="pp">#else</span>
+  <span class="pp">#define</span> LOG(x)          <span class="cmt">// expands to nothing — zero overhead</span>
+  <span class="pp">#define</span> LOGF(f, ...)
+<span class="pp">#endif</span>
+
+<span class="kw">void</span> <span class="fn">loop</span>() {
+  <span class="kw">float</span> temp = dht.<span class="fn">readTemperature</span>();
+  <span class="fn">LOGF</span>(<span class="str">"Temp: %.1f\n"</span>, temp);  <span class="cmt">// compiled away when DEBUG=0</span>
+}</pre>
+  </div>
+
+  <h2>Layer 2 — Encrypt Communications (MQTT over TLS)</h2>
+  <p>Plain MQTT on port 1883 sends all data as clear text. Use MQTT over TLS on port 8883 — every byte is encrypted end-to-end.</p>
+  <div class="code-block">
+    <div class="code-header"><div class="code-lang"><span class="lang-dot" style="background:#89b4fa"></span> cpp / ESP32</div><span>mqtt_tls.ino</span></div>
+    <pre><span class="pp">#include</span> <span class="str">&lt;WiFiClientSecure.h&gt;</span>
+<span class="pp">#include</span> <span class="str">&lt;PubSubClient.h&gt;</span>
+
+<span class="kw">const char</span>* root_ca = <span class="str">R"EOF(
+-----BEGIN CERTIFICATE-----
+MIIFazCCA1OgAwIBAgIRAIIQz7DSQONZRGPgu2OCiwAwDQYJ...
+(paste your broker's CA certificate here)
+-----END CERTIFICATE-----
+)EOF"</span>;
+
+WiFiClientSecure secureClient;
+PubSubClient     mqtt(secureClient);
+
+<span class="kw">void</span> <span class="fn">setup</span>() {
+  <span class="fn">connectWiFi</span>();
+  secureClient.<span class="fn">setCACert</span>(root_ca);
+  mqtt.<span class="fn">setServer</span>(<span class="str">"your-broker.hivemq.cloud"</span>, <span class="num">8883</span>);
+}
+
+<span class="kw">void</span> <span class="fn">connectMQTT</span>() {
+  <span class="kw">while</span> (!mqtt.<span class="fn">connected</span>()) {
+    <span class="kw">if</span> (mqtt.<span class="fn">connect</span>(<span class="str">"natcom-001"</span>, <span class="str">"mqttuser"</span>, <span class="str">"mqttpass"</span>)) {
+      <span class="fn">Serial.println</span>(<span class="str">"✓ Secure MQTT connected on port 8883"</span>);
+    } <span class="kw">else</span> {
+      <span class="fn">Serial.printf</span>(<span class="str">"MQTT fail rc=%d\n"</span>, mqtt.<span class="fn">state</span>());
+      <span class="fn">delay</span>(<span class="num">5000</span>);
+    }
+  }
+}</pre>
+  </div>
+
+  <div class="info-box teal">
+    <div class="title">🔑 Free TLS MQTT Brokers for Learning</div>
+    • <strong>HiveMQ Cloud</strong> — free tier, TLS on port 8883, username/password auth<br>
+    • <strong>EMQX Cloud</strong> — free tier, TLS + WebSocket support<br>
+    • <strong>Mosquitto self-hosted</strong> — install on Raspberry Pi, generate your own certs with openssl
+  </div>
+
+  <h2>Layer 3 — Secure OTA (Over-The-Air) Updates</h2>
+  <div class="code-block">
+    <div class="code-header"><div class="code-lang"><span class="lang-dot" style="background:#89b4fa"></span> cpp / ESP32</div><span>secure_ota.ino</span></div>
+    <pre><span class="pp">#include</span> <span class="str">&lt;HTTPUpdate.h&gt;</span>
+<span class="pp">#include</span> <span class="str">&lt;WiFiClientSecure.h&gt;</span>
+
+<span class="kw">void</span> <span class="fn">checkForUpdate</span>() {
+  WiFiClientSecure client;
+  client.<span class="fn">setInsecure</span>();  <span class="cmt">// Dev only — use setCACert() in production</span>
+
+  <span class="type">String</span> url = <span class="str">"https://updates.natcom.rw/firmware/v2.1.bin"</span>;
+  t_httpUpdate_return ret = httpUpdate.<span class="fn">update</span>(client, url);
+
+  <span class="kw">switch</span> (ret) {
+    <span class="kw">case</span> HTTP_UPDATE_FAILED:
+      <span class="fn">Serial.printf</span>(<span class="str">"OTA failed: %s\n"</span>, httpUpdate.<span class="fn">getLastErrorString</span>().c_str());
+      <span class="kw">break</span>;
+    <span class="kw">case</span> HTTP_UPDATE_NO_UPDATES:
+      <span class="fn">Serial.println</span>(<span class="str">"Already up to date"</span>); <span class="kw">break</span>;
+    <span class="kw">case</span> HTTP_UPDATE_OK:
+      <span class="fn">Serial.println</span>(<span class="str">"✓ Update complete — rebooting"</span>); <span class="kw">break</span>;
+  }
+}</pre>
+  </div>
+
+  <h2>Layer 4 — Network Segmentation (VLANs)</h2>
+  <div class="layer-stack">
+    <div class="layer" style="background:rgba(239,68,68,0.06)">
+      <span class="layer-num">VLAN 10</span>
+      <span class="layer-name" style="color:#fca5a5">🖥️ Corporate LAN</span>
+      <span class="layer-tech">192.168.10.0/24</span>
+      <span class="layer-desc">Staff computers, servers — cannot talk to IoT VLAN</span>
+    </div>
+    <div class="layer" style="background:rgba(245,158,11,0.06)">
+      <span class="layer-num">VLAN 20</span>
+      <span class="layer-name" style="color:#fcd34d">📶 IoT Network</span>
+      <span class="layer-tech">192.168.20.0/24</span>
+      <span class="layer-desc">All ESP32s, sensors, cameras — isolated from corporate VLAN</span>
+    </div>
+    <div class="layer" style="background:rgba(34,197,94,0.06)">
+      <span class="layer-num">VLAN 30</span>
+      <span class="layer-name" style="color:#4ade80">👥 Guest WiFi</span>
+      <span class="layer-tech">192.168.30.0/24</span>
+      <span class="layer-desc">Visitor devices — internet only, no access to any internal network</span>
+    </div>
+    <div class="layer">
+      <span class="layer-num">VLAN 1</span>
+      <span class="layer-name">🔒 Management</span>
+      <span class="layer-tech">192.168.1.0/24</span>
+      <span class="layer-desc">Router, switch management — IT admin access only</span>
+    </div>
+  </div>
+
+  <h2>Security Checklist for Every Deployment</h2>
+  <ul class="checklist">
+    <li>Unique device ID and rotating API key per device — no shared secrets</li>
+    <li>MQTT over TLS port 8883 — never plain port 1883 in production</li>
+    <li>Firmware OTA via HTTPS with signature verification</li>
+    <li>WiFi credentials stored in NVS, never in source code</li>
+    <li>IoT devices on isolated VLAN — cannot reach corporate network</li>
+    <li>Monitor device connections — alert on unexpected new devices joining</li>
+    <li>All cloud API endpoints use HTTPS — never plain HTTP</li>
+    <li>Set MQTT "last will" message so broker knows when device disconnects unexpectedly</li>
+    <li>Regular firmware updates — subscribe to ESP-IDF security advisories</li>
+    <li>Disable Arduino OTA in production or protect it with a strong password</li>
+  </ul>
+
+  <div class="code-block">
+    <div class="code-header"><div class="code-lang"><span class="lang-dot" style="background:#a6e3a1"></span> bash</div><span>pen_test_own_network.sh — test your own devices only</span></div>
+    <pre><span class="cmt"># Install MQTT test tools</span>
+sudo apt install mosquitto-clients nmap
+
+<span class="cmt"># Scan your local network for open MQTT brokers</span>
+nmap -p 1883,8883 192.168.1.0/24
+
+<span class="cmt"># Try subscribing anonymously to your broker (should be REJECTED if auth is on)</span>
+mosquitto_sub -h YOUR_BROKER_IP -p 1883 -t "#" -v
+<span class="cmt"># Expected: Connection Refused: not authorised</span>
+
+<span class="cmt"># Test with valid credentials</span>
+mosquitto_sub -h YOUR_BROKER_IP -p 1883 -t "natcom/#" -u iotuser -P yourpass -v</pre>
+  </div>
+
+  <div class="quiz">
+    <div class="quiz-title">🧠 Quick Check — Module 11</div>
+    <div class="quiz-q">Which port should you use for encrypted MQTT in production?</div>
+    <div class="quiz-options">
+      <button class="quiz-opt" onclick="checkQ(this,'wrong')">Port 1883 — standard MQTT</button>
+      <button class="quiz-opt" onclick="checkQ(this,'wrong')">Port 80 — HTTP</button>
+      <button class="quiz-opt" onclick="checkQ(this,'correct')">Port 8883 — MQTT over TLS</button>
+      <button class="quiz-opt" onclick="checkQ(this,'wrong')">Port 443 — HTTPS only</button>
+    </div>
+    <div class="quiz-feedback">Port 8883 is the standard for MQTT over TLS. Port 1883 is unencrypted — never use it in production. Port 443 (WSS) is valid for browser-based MQTT clients but not for device firmware.</div>
+  </div>
+
+  <div class="nav-bottom">
+    <button class="btn" onclick="go(9)">← Cloud & Dashboards</button>
+    <div class="progress-bar"><div class="progress-fill" style="width:91%"></div></div>
+    <span class="progress-text">11 / 12</span>
+    <button class="btn primary" onclick="go(11)">Next: Capstone Project →</button>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════════════════════════ -->
+<!-- MODULE 12: CAPSTONE PROJECT -->
+<!-- ══════════════════════════════════════════════════════════════ -->
+<section class="module" id="m11">
+  <div class="breadcrumb">🏠 Home › <span>Module 12: Capstone Project</span></div>
+  <div class="module-header">
+    <div class="module-icon" style="background:rgba(249,115,22,0.15);border:1px solid rgba(249,115,22,0.3)">🏆</div>
+    <div class="module-meta">
+      <div class="module-label">Module 12 — Final Project</div>
+      <div class="module-title">Capstone: Smart Building Monitor</div>
+      <div class="module-desc">Bring everything together. Design, wire, program, secure, and deploy a full end-to-end IoT system for a multi-room smart building — from sensors to live web dashboard.</div>
+      <div class="module-tags">
+        <span class="tag tag-orange">final project</span>
+        <span class="tag tag-green">full stack</span>
+        <span class="tag tag-blue">2 weeks</span>
+        <span class="tag tag-purple">presentation</span>
+      </div>
+    </div>
+  </div>
+
+  <h2>Project Overview</h2>
+  <div class="info-box teal">
+    <div class="title">🎯 What You Will Build</div>
+    A <strong>Smart Building Monitor</strong> for Natcom's office. Three ESP32 nodes (Reception, Server Room, Meeting Room) send live sensor data over secure MQTT to a Python backend running on a Raspberry Pi. A real-time web dashboard shows all three rooms. Automated alerts fire when thresholds are crossed. All code pushed to GitHub.
+  </div>
+
+  <div class="highlight-grid">
+    <div class="highlight-card"><div class="hc-num">3</div><div class="hc-label">ESP32 Sensor Nodes</div><div class="hc-desc">DHT22 + PIR + MQ-2 each</div></div>
+    <div class="highlight-card"><div class="hc-num">1</div><div class="hc-label">Raspberry Pi Gateway</div><div class="hc-desc">Mosquitto broker + Python backend</div></div>
+    <div class="highlight-card"><div class="hc-num">1</div><div class="hc-label">Live Web Dashboard</div><div class="hc-desc">Flask + Chart.js + WebSocket</div></div>
+    <div class="highlight-card"><div class="hc-num">TLS</div><div class="hc-label">Encrypted MQTT</div><div class="hc-desc">Port 8883 — all traffic encrypted</div></div>
+  </div>
+
+  <h2>Full System Architecture</h2>
+  <div class="pipeline">
+    <div class="pipe-node"><span class="pn-icon">🌡️</span><span class="pn-label">Node 1</span><span class="pn-sub">Reception</span></div>
+    <div class="pipe-arrow">↘</div>
+    <div class="pipe-node"><span class="pn-icon">🖥️</span><span class="pn-label">Node 2</span><span class="pn-sub">Server Room</span></div>
+    <div class="pipe-arrow">→ MQTT →</div>
+    <div class="pipe-node"><span class="pn-icon">🍓</span><span class="pn-label">Pi Broker</span><span class="pn-sub">Mosquitto</span></div>
+    <div class="pipe-arrow">→</div>
+    <div class="pipe-node"><span class="pn-icon">🐍</span><span class="pn-label">Python API</span><span class="pn-sub">Flask + SQLite</span></div>
+    <div class="pipe-arrow">→</div>
+    <div class="pipe-node"><span class="pn-icon">📊</span><span class="pn-label">Dashboard</span><span class="pn-sub">Live Charts</span></div>
+    <div class="pipe-arrow">↗</div>
+    <div class="pipe-node"><span class="pn-icon">💨</span><span class="pn-label">Node 3</span><span class="pn-sub">Meeting Room</span></div>
+  </div>
+
+  <h2>Week 1 — Hardware & Firmware</h2>
+  <ol class="steps">
+    <li><strong>Design your circuit</strong> — draw the schematic on paper first. Label every pin connection for all three nodes. Show it to your trainer before wiring.</li>
+    <li><strong>Wire Node 1</strong> on a breadboard — ESP32 + DHT22 + PIR + MQ-2 + status LED. Test each sensor individually before combining.</li>
+    <li><strong>Flash and test Node 1</strong> — verify Serial output shows correct readings. Confirm WiFi connects and MQTT publishes successfully to HiveMQ public broker.</li>
+    <li><strong>Replicate for Nodes 2 and 3</strong> — change only <code>DEVICE_ID</code> and <code>MQTT_TOPIC</code>. All other firmware is identical.</li>
+    <li><strong>Set up Mosquitto broker</strong> on Raspberry Pi with password authentication. Test from laptop with mosquitto_sub.</li>
+    <li><strong>Verify end-to-end</strong> — all three ESP32s appear in broker logs and data flows correctly.</li>
+  </ol>
+
+  <h3>Node Firmware — all 3 nodes share this, change DEVICE_ID only</h3>
+  <div class="code-block">
+    <div class="code-header"><div class="code-lang"><span class="lang-dot" style="background:#89b4fa"></span> cpp / ESP32</div><span>capstone_node.ino</span></div>
+    <pre><span class="pp">#include</span> <span class="str">&lt;WiFi.h&gt;</span>
+<span class="pp">#include</span> <span class="str">&lt;PubSubClient.h&gt;</span>
+<span class="pp">#include</span> <span class="str">&lt;DHT.h&gt;</span>
+<span class="pp">#include</span> <span class="str">&lt;ArduinoJson.h&gt;</span>
+
+<span class="cmt">// ── Change per device ──────────────────────────────</span>
+<span class="pp">#define</span> DEVICE_ID   <span class="str">"node-reception"</span>    <span class="cmt">// node-serverroom / node-meeting</span>
+<span class="pp">#define</span> MQTT_TOPIC  <span class="str">"natcom/reception"</span>  <span class="cmt">// natcom/serverroom / natcom/meeting</span>
+
+<span class="cmt">// ── Common for all nodes ───────────────────────────</span>
+<span class="pp">#define</span> WIFI_SSID   <span class="str">"NatcomIoT"</span>
+<span class="pp">#define</span> WIFI_PASS   <span class="str">"NatcomWiFiPass"</span>
+<span class="pp">#define</span> BROKER      <span class="str">"192.168.1.50"</span>   <span class="cmt">// Raspberry Pi IP</span>
+<span class="pp">#define</span> BROKER_PORT <span class="num">1883</span>
+<span class="pp">#define</span> MQTT_USER   <span class="str">"iotdevice"</span>
+<span class="pp">#define</span> MQTT_PASS   <span class="str">"securepass99"</span>
+<span class="pp">#define</span> DHT_PIN     <span class="num">4</span>
+<span class="pp">#define</span> PIR_PIN     <span class="num">14</span>
+<span class="pp">#define</span> MQ2_PIN     <span class="num">34</span>
+<span class="pp">#define</span> LED_PIN     <span class="num">2</span>
+<span class="pp">#define</span> SEND_MS     <span class="num">15000</span>
+
+DHT dht(DHT_PIN, DHT22);
+WiFiClient   wc;
+PubSubClient mqtt(wc);
+<span class="kw">unsigned long</span> lastSend = <span class="num">0</span>;
+
+<span class="kw">void</span> <span class="fn">setup</span>() {
+  <span class="fn">Serial.begin</span>(<span class="num">115200</span>);
+  <span class="fn">pinMode</span>(PIR_PIN, <span class="op">INPUT</span>);
+  <span class="fn">pinMode</span>(LED_PIN, <span class="op">OUTPUT</span>);
+  dht.<span class="fn">begin</span>();
+  WiFi.<span class="fn">begin</span>(WIFI_SSID, WIFI_PASS);
+  <span class="kw">while</span> (WiFi.<span class="fn">status</span>() != WL_CONNECTED) { <span class="fn">delay</span>(<span class="num">400</span>); }
+  <span class="fn">Serial.println</span>(<span class="str">"WiFi connected"</span>);
+  mqtt.<span class="fn">setServer</span>(BROKER, BROKER_PORT);
+}
+
+<span class="kw">void</span> <span class="fn">reconnect</span>() {
+  <span class="kw">while</span> (!mqtt.<span class="fn">connected</span>()) {
+    <span class="kw">if</span> (!mqtt.<span class="fn">connect</span>(DEVICE_ID, MQTT_USER, MQTT_PASS))
+      <span class="fn">delay</span>(<span class="num">3000</span>);
+  }
+}
+
+<span class="kw">void</span> <span class="fn">loop</span>() {
+  <span class="kw">if</span> (!mqtt.<span class="fn">connected</span>()) <span class="fn">reconnect</span>();
+  mqtt.<span class="fn">loop</span>();
+
+  <span class="kw">if</span> (<span class="fn">millis</span>() - lastSend >= SEND_MS) {
+    lastSend = <span class="fn">millis</span>();
+    <span class="kw">float</span> temp   = dht.<span class="fn">readTemperature</span>();
+    <span class="kw">float</span> hum    = dht.<span class="fn">readHumidity</span>();
+    <span class="kw">int</span>   gas    = <span class="fn">analogRead</span>(MQ2_PIN);
+    <span class="kw">bool</span>  motion = <span class="fn">digitalRead</span>(PIR_PIN);
+
+    StaticJsonDocument&lt;<span class="num">160</span>&gt; doc;
+    doc[<span class="str">"id"</span>]     = DEVICE_ID;
+    doc[<span class="str">"temp"</span>]   = <span class="fn">isnan</span>(temp) ? <span class="num">0</span> : <span class="fn">round</span>(temp*<span class="num">10</span>)/<span class="num">10.0</span>;
+    doc[<span class="str">"hum"</span>]    = <span class="fn">isnan</span>(hum)  ? <span class="num">0</span> : <span class="fn">round</span>(hum*<span class="num">10</span>)/<span class="num">10.0</span>;
+    doc[<span class="str">"gas"</span>]    = gas;
+    doc[<span class="str">"motion"</span>] = motion;
+    doc[<span class="str">"rssi"</span>]   = WiFi.<span class="fn">RSSI</span>();
+
+    <span class="kw">char</span> buf[<span class="num">160</span>];
+    <span class="fn">serializeJson</span>(doc, buf);
+    <span class="kw">bool</span> ok = mqtt.<span class="fn">publish</span>(MQTT_TOPIC, buf);
+    <span class="fn">digitalWrite</span>(LED_PIN, <span class="op">HIGH</span>); <span class="fn">delay</span>(<span class="num">80</span>); <span class="fn">digitalWrite</span>(LED_PIN, <span class="op">LOW</span>);
+    <span class="fn">Serial.println</span>(ok ? <span class="str">"Sent ✓"</span> : <span class="str">"FAILED"</span>);
+  }
+}</pre>
+  </div>
+
+  <h2>Week 2 — Backend, Dashboard & Presentation</h2>
+  <ol class="steps">
+    <li><strong>Set up the Python backend</strong> — run capstone_server.py on the Raspberry Pi, confirm it receives all three nodes' data and stores to SQLite.</li>
+    <li><strong>Build the dashboard</strong> — three room cards with individual live charts and color-coded status indicators (green / amber / red).</li>
+    <li><strong>Add alert rules</strong> — Telegram notification when server room exceeds 29°C or MQ-2 gas reading exceeds 2000.</li>
+    <li><strong>Write the README</strong> — document wiring, setup steps, and configuration. Push all code to GitHub with a circuit diagram image.</li>
+    <li><strong>Record a 3–5 min demo video</strong> — show each sensor responding live on the dashboard. Demonstrate a simulated temperature alert.</li>
+    <li><strong>Present to your trainer</strong> — explain the architecture diagram, walk through the code, live demo, and discuss the security measures you applied.</li>
+  </ol>
+
+  <h3>Python Backend — capstone_server.py</h3>
+  <div class="code-block">
+    <div class="code-header"><div class="code-lang"><span class="lang-dot" style="background:#a6e3a1"></span> python</div><span>capstone_server.py</span></div>
+    <pre><span class="kw">from</span> flask <span class="kw">import</span> Flask, render_template, jsonify
+<span class="kw">from</span> flask_socketio <span class="kw">import</span> SocketIO
+<span class="kw">import</span> paho.mqtt.client <span class="kw">as</span> mqtt_client
+<span class="kw">import</span> json, threading, sqlite3, time, requests
+
+app = <span class="fn">Flask</span>(__name__)
+sio = <span class="fn">SocketIO</span>(app, cors_allowed_origins=<span class="str">"*"</span>)
+
+conn = sqlite3.<span class="fn">connect</span>(<span class="str">'capstone.db'</span>, check_same_thread=<span class="kw">False</span>)
+conn.<span class="fn">execute</span>(<span class="str">"""CREATE TABLE IF NOT EXISTS readings(
+  id INTEGER PRIMARY KEY, ts REAL, room TEXT,
+  temp REAL, hum REAL, gas INTEGER, motion INTEGER, rssi INTEGER
+)"""</span>)
+conn.<span class="fn">commit</span>()
+
+THRESHOLDS = {
+  <span class="str">"node-serverroom"</span>: {<span class="str">"temp"</span>: <span class="num">29</span>, <span class="str">"gas"</span>: <span class="num">2000</span>},
+  <span class="str">"node-reception"</span>:  {<span class="str">"temp"</span>: <span class="num">34</span>, <span class="str">"gas"</span>: <span class="num">2500</span>},
+  <span class="str">"node-meeting"</span>:    {<span class="str">"temp"</span>: <span class="num">32</span>, <span class="str">"gas"</span>: <span class="num">2500</span>},
+}
+alert_cooldown = {}
+
+TELEGRAM_TOKEN = <span class="str">"YOUR_BOT_TOKEN"</span>
+TELEGRAM_CHAT  = <span class="str">"YOUR_CHAT_ID"</span>
+
+<span class="kw">def</span> <span class="fn">send_alert</span>(device, msg):
+    <span class="kw">if</span> time.<span class="fn">time</span>() - alert_cooldown.<span class="fn">get</span>(device, <span class="num">0</span>) < <span class="num">300</span>: <span class="kw">return</span>
+    alert_cooldown[device] = time.<span class="fn">time</span>()
+    <span class="fn">print</span>(<span class="str">f"ALERT: {msg}"</span>)
+    sio.<span class="fn">emit</span>(<span class="str">'alert'</span>, {<span class="str">'device'</span>: device, <span class="str">'message'</span>: msg})
+    requests.<span class="fn">post</span>(
+        <span class="str">f"https://api.telegram.org/bot{TELEGRAM_TOKEN}/sendMessage"</span>,
+        data={<span class="str">"chat_id"</span>: TELEGRAM_CHAT, <span class="str">"text"</span>: msg}, timeout=<span class="num">5</span>
+    )
+
+<span class="kw">def</span> <span class="fn">check_thresholds</span>(data):
+    dev = data.<span class="fn">get</span>(<span class="str">'id'</span>, <span class="str">''</span>)
+    thr = THRESHOLDS.<span class="fn">get</span>(dev, {})
+    <span class="kw">if</span> data.<span class="fn">get</span>(<span class="str">'temp'</span>, <span class="num">0</span>) > thr.<span class="fn">get</span>(<span class="str">'temp'</span>, <span class="num">999</span>):
+        <span class="fn">send_alert</span>(dev, <span class="str">f"🌡 High temp {data['temp']}°C in {dev}"</span>)
+    <span class="kw">if</span> data.<span class="fn">get</span>(<span class="str">'gas'</span>, <span class="num">0</span>)  > thr.<span class="fn">get</span>(<span class="str">'gas'</span>, <span class="num">999</span>):
+        <span class="fn">send_alert</span>(dev, <span class="str">f"💨 Gas/smoke detected in {dev}: {data['gas']}"</span>)
+
+<span class="kw">def</span> <span class="fn">on_message</span>(client, userdata, msg):
+    <span class="kw">try</span>:
+        data = json.<span class="fn">loads</span>(msg.payload)
+        data[<span class="str">'ts'</span>] = time.<span class="fn">strftime</span>(<span class="str">"%H:%M:%S"</span>)
+        conn.<span class="fn">execute</span>(
+            <span class="str">"INSERT INTO readings(ts,room,temp,hum,gas,motion,rssi) VALUES(?,?,?,?,?,?,?)"</span>,
+            (time.<span class="fn">time</span>(), data.<span class="fn">get</span>(<span class="str">'id'</span>), data.<span class="fn">get</span>(<span class="str">'temp'</span>),
+             data.<span class="fn">get</span>(<span class="str">'hum'</span>), data.<span class="fn">get</span>(<span class="str">'gas'</span>),
+             int(data.<span class="fn">get</span>(<span class="str">'motion'</span>, <span class="kw">False</span>)), data.<span class="fn">get</span>(<span class="str">'rssi'</span>)))
+        conn.<span class="fn">commit</span>()
+        <span class="fn">check_thresholds</span>(data)
+        sio.<span class="fn">emit</span>(<span class="str">'sensor_update'</span>, data)
+    <span class="kw">except Exception as</span> e:
+        <span class="fn">print</span>(<span class="str">f"Error: {e}"</span>)
+
+<span class="kw">def</span> <span class="fn">start_mqtt</span>():
+    c = mqtt_client.<span class="fn">Client</span>(<span class="str">"capstone-server"</span>)
+    c.on_message = on_message
+    c.<span class="fn">username_pw_set</span>(<span class="str">"iotdevice"</span>, <span class="str">"securepass99"</span>)
+    c.<span class="fn">connect</span>(<span class="str">"localhost"</span>, <span class="num">1883</span>)
+    c.<span class="fn">subscribe</span>(<span class="str">"natcom/#"</span>)
+    c.<span class="fn">loop_forever</span>()
+
+<span class="op">@</span>app.<span class="fn">route</span>(<span class="str">'/'</span>)
+<span class="kw">def</span> <span class="fn">index</span>(): <span class="kw">return</span> <span class="fn">render_template</span>(<span class="str">'capstone_dashboard.html'</span>)
+
+<span class="op">@</span>app.<span class="fn">route</span>(<span class="str">'/api/history/&lt;room&gt;'</span>)
+<span class="kw">def</span> <span class="fn">history</span>(room):
+    rows = conn.<span class="fn">execute</span>(
+        <span class="str">"SELECT ts,temp,hum,gas,motion FROM readings WHERE room=? ORDER BY ts DESC LIMIT 50"</span>,
+        (room,)).<span class="fn">fetchall</span>()
+    <span class="kw">return</span> <span class="fn">jsonify</span>([{<span class="str">'ts'</span>:r[<span class="num">0</span>],<span class="str">'temp'</span>:r[<span class="num">1</span>],<span class="str">'hum'</span>:r[<span class="num">2</span>],<span class="str">'gas'</span>:r[<span class="num">3</span>],<span class="str">'motion'</span>:r[<span class="num">4</span>]} <span class="kw">for</span> r <span class="kw">in</span> rows])
+
+threading.<span class="fn">Thread</span>(target=start_mqtt, daemon=<span class="kw">True</span>).<span class="fn">start</span>()
+<span class="kw">if</span> __name__ == <span class="str">'__main__'</span>:
+    sio.<span class="fn">run</span>(app, host=<span class="str">'0.0.0.0'</span>, port=<span class="num">5000</span>)</pre>
+  </div>
+
+  <h2>Telegram Bot Alerts Setup</h2>
+  <div class="code-block">
+    <div class="code-header"><div class="code-lang"><span class="lang-dot" style="background:#a6e3a1"></span> python</div><span>telegram_alert.py</span></div>
+    <pre><span class="kw">import</span> requests
+
+BOT_TOKEN = <span class="str">"1234567890:ABCDEFGHijklmnopqrstuvwxyz-example"</span>
+CHAT_ID   = <span class="str">"987654321"</span>
+
+<span class="kw">def</span> <span class="fn">telegram_alert</span>(message: str) -> bool:
+    url  = <span class="str">f"https://api.telegram.org/bot{BOT_TOKEN}/sendMessage"</span>
+    data = {<span class="str">"chat_id"</span>: CHAT_ID, <span class="str">"text"</span>: message, <span class="str">"parse_mode"</span>: <span class="str">"HTML"</span>}
+    <span class="kw">try</span>:
+        r = requests.<span class="fn">post</span>(url, data=data, timeout=<span class="num">5</span>)
+        <span class="kw">return</span> r.status_code == <span class="num">200</span>
+    <span class="kw">except</span>:
+        <span class="kw">return</span> <span class="kw">False</span>
+
+<span class="cmt"># Test it:
+# telegram_alert("🚨 &lt;b&gt;ALERT&lt;/b&gt;: Server Room = 31.4°C — check cooling!")
+
+# Setup:
+# 1. Telegram → @BotFather → /newbot → copy token
+# 2. Telegram → @userinfobot → /start → copy chat_id
+# 3. Paste both above and run</span></pre>
+  </div>
+
+  <h2>Raspberry Pi Setup Guide</h2>
+  <ol class="steps">
+    <li>Flash <strong>Raspberry Pi OS Lite</strong> (64-bit) to microSD using Raspberry Pi Imager. Enable SSH in imager settings before flashing.</li>
+    <li>Connect Pi to your network via Ethernet. Find its IP: <code>nmap -sn 192.168.1.0/24</code> or check your router's DHCP table.</li>
+    <li>SSH in: <code>ssh pi@192.168.1.50</code> — default password: <code>raspberry</code>. Run <code>passwd</code> immediately to change it.</li>
+    <li>Install Mosquitto: <code>sudo apt update && sudo apt install -y mosquitto mosquitto-clients</code></li>
+    <li>Create auth: <code>sudo mosquitto_passwd -c /etc/mosquitto/passwd iotdevice</code></li>
+    <li>Edit config: <code>sudo nano /etc/mosquitto/mosquitto.conf</code> → add <code>allow_anonymous false</code> and <code>password_file /etc/mosquitto/passwd</code></li>
+    <li>Restart: <code>sudo systemctl restart mosquitto && sudo systemctl enable mosquitto</code></li>
+    <li>Install Python: <code>pip3 install flask flask-socketio paho-mqtt requests</code></li>
+    <li>Clone your code from GitHub and run: <code>python3 capstone_server.py</code></li>
+    <li>Open dashboard from any device on the network: <code>http://192.168.1.50:5000</code></li>
+  </ol>
+
+  <h2>Capstone Grading Rubric</h2>
+  <div class="info-box do">
+    <div class="title">✅ Assessment Criteria</div>
+    <table class="term-table" style="margin:0.5rem 0 0">
+      <tr><th>Component</th><th>Points</th><th>Criteria</th></tr>
+      <tr><td>Hardware Wiring</td><td>20</td><td>Clean wiring, correct components, all sensors working, no short circuits</td></tr>
+      <tr><td>Firmware Quality</td><td>20</td><td>Clean C++ code, proper functions, no hardcoded credentials, error handling</td></tr>
+      <tr><td>Backend & Storage</td><td>20</td><td>Data stored in SQLite correctly, API endpoints work, alerts fire at right thresholds</td></tr>
+      <tr><td>Live Dashboard</td><td>20</td><td>Real-time updates, all rooms visible, charts render, alert notifications shown</td></tr>
+      <tr><td>Security</td><td>10</td><td>Auth on broker, no plaintext credentials in code, VLAN awareness discussed</td></tr>
+      <tr><td>Presentation</td><td>10</td><td>Clear architecture explanation, live demo works, questions answered confidently</td></tr>
+    </table>
+  </div>
+
+  <h2>Bonus Extensions</h2>
+  <ul class="checklist">
+    <li>Add a 128×64 OLED on each node showing live temp/humidity — no phone needed</li>
+    <li>Servo-controlled ventilation flap that opens automatically when temp threshold is exceeded</li>
+    <li>Telegram bot command: send /status to get all room readings on demand</li>
+    <li>Replace SQLite with InfluxDB + Grafana dashboard with historical heatmaps</li>
+    <li>Deep sleep on nodes — wake every 5 min, read sensors, publish, sleep — extends battery life dramatically</li>
+    <li>GPS on one node, plot last-known location on a Leaflet.js map in the dashboard</li>
+    <li>Simulate the entire system in Cisco Packet Tracer first, then build the real version</li>
+    <li>Add the ML anomaly detection from Module 9 to flag unusual readings automatically</li>
+  </ul>
+
+  <h2>Full Course Summary</h2>
+  <table class="term-table">
+    <tr><th>#</th><th>Module</th><th>Key Skills</th></tr>
+    <tr><td>1</td><td>C++ Fundamentals</td><td>Variables, loops, functions, structs, classes — the language of embedded systems</td></tr>
+    <tr><td>2</td><td>Electronics Basics</td><td>Ohm's Law, breadboard wiring, resistors, LEDs, pull-up/pull-down, digital vs analog</td></tr>
+    <tr><td>3</td><td>IoT Introduction</td><td>What IoT is, DIKW pyramid, IoT in Africa and Rwanda, global market scale</td></tr>
+    <tr><td>4</td><td>IoT Architecture</td><td>4-layer model, MQTT pub/sub, cloud vs edge vs fog computing, protocol stack</td></tr>
+    <tr><td>5</td><td>Sensors & Actuators</td><td>DHT22, HC-SR04, PIR, MQ-2, GPS — wiring and code for every major sensor type</td></tr>
+    <tr><td>6</td><td>Connectivity</td><td>WiFi, BLE, LoRa, Zigbee, NB-IoT — choosing the right protocol for any scenario</td></tr>
+    <tr><td>7</td><td>Cisco Packet Tracer</td><td>Simulate full IoT networks before touching hardware — classroom, server room, campus</td></tr>
+    <tr><td>8</td><td>Arduino & ESP32</td><td>Real hardware — flash firmware, read sensors, publish MQTT, handle reconnects</td></tr>
+    <tr><td>9</td><td>Python for IoT</td><td>Receive MQTT, store to SQLite, Pandas analysis, ML anomaly detection and classifiers</td></tr>
+    <tr><td>10</td><td>Cloud & Dashboards</td><td>Flask + Socket.IO live dashboard, Chart.js, InfluxDB + Grafana, cloud platforms</td></tr>
+    <tr><td>11</td><td>IoT Security</td><td>Threat model, TLS MQTT, NVS credentials, OTA updates, VLAN segmentation</td></tr>
+    <tr><td>12</td><td>Capstone Project</td><td>End-to-end multi-node system — sensor to Raspberry Pi to dashboard to Telegram alert</td></tr>
+  </table>
+
+  <div class="info-box do">
+    <div class="title">🎓 Natcom IoT Full Course — Complete!</div>
+    You have built a complete IoT system from scratch: from your first line of C++ to a secure, multi-room smart building monitor with live dashboards and automated alerts. You are ready to design and deploy real IoT solutions across Rwanda and beyond. — Obed
+  </div>
+
+  <div class="quiz">
+    <div class="quiz-title">🧠 Final Challenge</div>
+    <div class="quiz-q">Your ESP32 node stops sending data after 2 hours. WiFi is still connected. What is the most likely cause?</div>
+    <div class="quiz-options">
+      <button class="quiz-opt" onclick="checkQ(this,'wrong')">The DHT22 sensor overheated and failed</button>
+      <button class="quiz-opt" onclick="checkQ(this,'correct')">MQTT broker disconnected — mqtt.loop() or reconnect() logic has a bug</button>
+      <button class="quiz-opt" onclick="checkQ(this,'wrong')">The ESP32 ran out of RAM</button>
+      <button class="quiz-opt" onclick="checkQ(this,'wrong')">The 5V power supply is insufficient</button>
+    </div>
+    <div class="quiz-feedback">The most common cause is an MQTT keepalive timeout. If mqtt.loop() is not called every iteration, or reconnect() is not triggered when connected() returns false, the client silently stops publishing. Always call mqtt.loop() in every loop() iteration and always check mqtt.connected() before publishing.</div>
+  </div>
+
+  <div class="nav-bottom">
+    <button class="btn" onclick="go(10)">← IoT Security</button>
+    <div class="progress-bar"><div class="progress-fill" style="width:100%"></div></div>
+    <span class="progress-text">12 / 12 ✓</span>
+    <button class="btn primary" onclick="go(0)" style="background:rgba(34,197,94,0.15);border-color:rgba(34,197,94,0.4);color:#4ade80">🔄 Start Over</button>
+  </div>
+</section>
+
+</main>
+</div>
+
+<!-- ══ JAVASCRIPT ══ -->
+<script>
+  const modules  = document.querySelectorAll('.module');
+  const navItems = document.querySelectorAll('.nav-item');
+
+  function go(index) {
+    modules.forEach((m, i)  => m.classList.toggle('active', i === index));
+    navItems.forEach((n, i) => n.classList.toggle('active', i === index));
+    document.querySelector('.main').scrollTo({ top: 0, behavior: 'smooth' });
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  function checkQ(btn, result) {
+    const opts = btn.closest('.quiz-options').querySelectorAll('.quiz-opt');
+    const fb   = btn.closest('.quiz').querySelector('.quiz-feedback');
+    if ([...opts].some(o => o.classList.contains('correct') || o.classList.contains('wrong'))) return;
+    opts.forEach(o => o.style.pointerEvents = 'none');
+    btn.classList.add(result);
+    if (result === 'wrong') {
+      opts.forEach(o => {
+        if (o.getAttribute('onclick') && o.getAttribute('onclick').includes("'correct'"))
+          o.classList.add('correct');
+      });
+    }
+    fb.classList.add('show', result === 'correct' ? 'ok' : 'bad');
+  }
+</script>
+
+</body>
+</html>
